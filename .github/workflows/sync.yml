@@ -1,0 +1,18 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 00:00 自动同步
+  workflow_dispatch:       # 也支持手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork
+        uses: repo-sync/github-sync@v2
+        with:
+          source_repo: "原作者/仓库名"   # 上游仓库
+          source_branch: "main"           # 上游分支
+          destination_branch: "main"      # 你的分支
+          github_token: ${{ secrets.GITHUB_TOKEN }}
