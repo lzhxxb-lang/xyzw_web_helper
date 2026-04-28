@@ -6052,10 +6052,118 @@ const stopBatch = () => {
 
 <style scoped>
 .batch-daily-tasks {
+  --batch-surface: var(--bg-primary);
+  --batch-surface-muted: var(--bg-secondary);
+  --batch-surface-soft: var(--bg-tertiary);
+  --batch-border: var(--border-light);
+  --batch-divider: var(--border-light);
+  --batch-text: var(--text-primary);
+  --batch-text-secondary: var(--text-secondary);
+  --batch-text-tertiary: var(--text-tertiary);
+  --batch-accent: var(--primary-color);
+  --batch-success: var(--success-color);
+  --batch-warning: var(--warning-color);
+  --batch-error: var(--error-color);
+  --batch-eyebrow-bg: rgba(102, 126, 234, 0.1);
+  --batch-running-badge-bg: rgba(102, 126, 234, 0.14);
+  --batch-running-badge-border: rgba(102, 126, 234, 0.2);
+  --batch-running-badge-text: var(--primary-color);
+  --batch-accent-border: rgba(102, 126, 234, 0.18);
+  --batch-card-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+  --batch-panel-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  --batch-mobile-shell-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(245, 247, 250, 0.76)
+  );
+  --batch-panel-gradient: linear-gradient(
+    180deg,
+    var(--batch-surface) 0%,
+    var(--batch-surface-muted) 100%
+  );
+  --batch-intro-card-bg:
+    radial-gradient(circle at top right, rgba(102, 126, 234, 0.16), transparent 42%),
+    linear-gradient(
+      135deg,
+      var(--batch-surface) 0%,
+      var(--batch-surface-muted) 55%,
+      rgba(230, 247, 255, 0.42) 100%
+    );
+  --batch-accent-panel-bg: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.12),
+    var(--batch-surface)
+  );
+  --batch-glass-bg: rgba(255, 255, 255, 0.6);
+  --batch-glass-bg-strong: rgba(255, 255, 255, 0.65);
+  --batch-log-bg: linear-gradient(
+    180deg,
+    var(--batch-surface-soft) 0%,
+    var(--batch-surface-muted) 100%
+  );
+  --batch-log-border: var(--batch-border);
+  --batch-log-text: var(--batch-text);
+  --batch-log-time: var(--batch-text-tertiary);
+  --batch-log-inset-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+  --batch-success-soft: rgba(24, 160, 88, 0.12);
+  --batch-error-soft: rgba(235, 87, 87, 0.12);
+  --batch-setting-text: var(--batch-text-secondary);
+  --batch-group-bg: var(--batch-surface-muted);
+  --batch-group-border: var(--batch-border);
+  --batch-hover-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  --batch-recipient-hover-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  --batch-avatar-hover-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
   padding: 20px;
   height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+[data-theme="dark"] .batch-daily-tasks {
+  --batch-accent-border: rgba(129, 140, 248, 0.22);
+  --batch-running-badge-bg: rgba(102, 126, 234, 0.22);
+  --batch-running-badge-border: rgba(129, 140, 248, 0.28);
+  --batch-running-badge-text: #dbe4ff;
+  --batch-card-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  --batch-panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+  --batch-mobile-shell-bg: linear-gradient(
+    180deg,
+    rgba(31, 41, 55, 0.92),
+    rgba(31, 41, 55, 0.72)
+  );
+  --batch-panel-gradient: linear-gradient(
+    180deg,
+    rgba(31, 41, 55, 0.98) 0%,
+    rgba(55, 65, 81, 0.94) 100%
+  );
+  --batch-intro-card-bg:
+    radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 42%),
+    linear-gradient(
+      135deg,
+      rgba(31, 41, 55, 0.98) 0%,
+      rgba(55, 65, 81, 0.96) 58%,
+      rgba(67, 56, 202, 0.18) 100%
+    );
+  --batch-accent-panel-bg: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.18),
+    rgba(31, 41, 55, 0.92)
+  );
+  --batch-glass-bg: rgba(31, 41, 55, 0.58);
+  --batch-glass-bg-strong: rgba(31, 41, 55, 0.62);
+  --batch-log-bg: linear-gradient(
+    180deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(31, 41, 55, 0.96) 100%
+  );
+  --batch-log-border: rgba(75, 85, 99, 0.9);
+  --batch-log-inset-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22);
+  --batch-divider: rgba(107, 114, 128, 0.44);
+  --batch-group-bg: rgba(31, 41, 55, 0.72);
+  --batch-group-border: rgba(75, 85, 99, 0.92);
+  --batch-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --batch-recipient-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+  --batch-avatar-hover-shadow: 0 6px 16px rgba(102, 126, 234, 0.28);
 }
 
 .main-layout {
@@ -6094,9 +6202,9 @@ const stopBatch = () => {
 
 .mobile-priority-header__main,
 .mobile-priority-header__drawer {
-  border: 1px solid #e7edf4;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--batch-border);
+  background: var(--batch-panel-gradient);
+  box-shadow: var(--batch-panel-shadow);
 }
 
 .mobile-priority-header__main {
@@ -6115,7 +6223,7 @@ const stopBatch = () => {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
-  color: #1f2937;
+  color: var(--batch-text);
 }
 
 .mobile-priority-header__state,
@@ -6130,14 +6238,16 @@ const stopBatch = () => {
 }
 
 .mobile-priority-header__state {
-  background-color: #eef2f7;
-  color: #475467;
+  background-color: var(--batch-surface-soft);
+  color: var(--batch-text-secondary);
   flex-shrink: 0;
+  border: 1px solid var(--batch-border);
 }
 
 .mobile-priority-header__state.is-running {
-  background-color: rgba(22, 119, 255, 0.12);
-  color: #1677ff;
+  background-color: var(--batch-running-badge-bg);
+  color: var(--batch-running-badge-text);
+  border-color: var(--batch-running-badge-border);
 }
 
 .mobile-priority-header__meta {
@@ -6148,9 +6258,9 @@ const stopBatch = () => {
 }
 
 .mobile-priority-header__meta-item {
-  background-color: #f7f9fc;
-  color: #667085;
-  border: 1px solid #e9eef5;
+  background-color: var(--batch-surface);
+  color: var(--batch-text-secondary);
+  border: 1px solid var(--batch-border);
 }
 
 .mobile-priority-header__primary-actions {
@@ -6189,7 +6299,7 @@ const stopBatch = () => {
   list-style: none;
   font-size: 14px;
   font-weight: 600;
-  color: #344054;
+  color: var(--batch-text);
 }
 
 .mobile-priority-header__drawer-summary::-webkit-details-marker {
@@ -6199,7 +6309,7 @@ const stopBatch = () => {
 .mobile-priority-header__drawer-hint {
   font-size: 12px;
   font-weight: 500;
-  color: #667085;
+  color: var(--batch-text-tertiary);
 }
 
 .mobile-priority-header__drawer-content {
@@ -6213,21 +6323,21 @@ const stopBatch = () => {
   gap: 5px;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(22, 119, 255, 0.12);
-  background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(22, 119, 255, 0.02));
-  color: #475467;
+  border: 1px solid var(--batch-accent-border);
+  background: var(--batch-accent-panel-bg);
+  color: var(--batch-text-secondary);
   font-size: 13px;
 }
 
 .mobile-priority-header__drawer-status-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--batch-text-tertiary);
 }
 
 .mobile-priority-header__drawer-status strong {
   font-size: 14px;
   line-height: 1.5;
-  color: #1f2937;
+  color: var(--batch-text);
 }
 
 .mobile-priority-header__drawer-grid {
@@ -6248,16 +6358,14 @@ const stopBatch = () => {
   min-width: 0;
   padding: 18px 20px;
   border-radius: 18px;
-  border: 1px solid #e7edf4;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--batch-border);
+  background: var(--batch-panel-gradient);
+  box-shadow: var(--batch-card-shadow);
   overflow: hidden;
 }
 
 .page-header__card--intro {
-  background:
-    radial-gradient(circle at top right, rgba(22, 119, 255, 0.14), transparent 42%),
-    linear-gradient(135deg, #ffffff 0%, #f7fbff 55%, #edf5ff 100%);
+  background: var(--batch-intro-card-bg);
 }
 
 .page-header__card--schedule {
@@ -6281,8 +6389,8 @@ const stopBatch = () => {
   align-items: center;
   padding: 4px 10px;
   border-radius: 999px;
-  background-color: rgba(22, 119, 255, 0.08);
-  color: #1677ff;
+  background-color: var(--batch-eyebrow-bg);
+  color: var(--batch-accent);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -6300,7 +6408,7 @@ const stopBatch = () => {
   margin: 0;
   font-size: 30px;
   line-height: 1.15;
-  color: #1f2937;
+  color: var(--batch-text);
 }
 
 .page-header__task-count {
@@ -6308,9 +6416,9 @@ const stopBatch = () => {
   align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(22, 119, 255, 0.14);
-  color: #1677ff;
+  background-color: var(--batch-glass-bg-strong);
+  border: 1px solid var(--batch-accent-border);
+  color: var(--batch-accent);
   font-size: 13px;
   font-weight: 600;
 }
@@ -6320,7 +6428,7 @@ const stopBatch = () => {
   max-width: 520px;
   font-size: 14px;
   line-height: 1.7;
-  color: #5f6b7a;
+  color: var(--batch-text-secondary);
 }
 
 .page-header__quick-stats {
@@ -6335,8 +6443,8 @@ const stopBatch = () => {
 .page-header__stat {
   padding: 14px 16px;
   border-radius: 14px;
-  background-color: rgba(255, 255, 255, 0.82);
-  border: 1px solid #ecf1f6;
+  background-color: var(--batch-glass-bg);
+  border: 1px solid var(--batch-border);
   backdrop-filter: blur(10px);
 }
 
@@ -6344,23 +6452,23 @@ const stopBatch = () => {
   display: block;
   margin-bottom: 6px;
   font-size: 12px;
-  color: #7b8794;
+  color: var(--batch-text-tertiary);
 }
 
 .page-header__stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: var(--batch-text);
 }
 
 .page-header__stat-value.is-running {
-  color: #1677ff;
+  color: var(--batch-accent);
 }
 
 .page-header__section-label {
   font-size: 12px;
   font-weight: 700;
-  color: #7b8794;
+  color: var(--batch-text-tertiary);
   letter-spacing: 0.5px;
 }
 
@@ -6384,19 +6492,19 @@ const stopBatch = () => {
   gap: 12px;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid #edf2f7;
-  background-color: #ffffff;
+  border: 1px solid var(--batch-border);
+  background-color: var(--batch-surface);
 }
 
 .page-header__schedule-count-label {
   font-size: 13px;
-  color: #667085;
+  color: var(--batch-text-secondary);
 }
 
 .page-header__schedule-count strong {
   font-size: 28px;
   line-height: 1;
-  color: #111827;
+  color: var(--batch-text);
 }
 
 .page-header__next-task {
@@ -6405,31 +6513,31 @@ const stopBatch = () => {
   gap: 6px;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid rgba(22, 119, 255, 0.14);
-  background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(22, 119, 255, 0.02));
+  border: 1px solid var(--batch-accent-border);
+  background: var(--batch-accent-panel-bg);
 }
 
 .page-header__next-task-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--batch-text-tertiary);
 }
 
 .page-header__next-task strong {
   font-size: 15px;
   line-height: 1.6;
-  color: #1f2937;
+  color: var(--batch-text);
   word-break: break-word;
 }
 
 .page-header__next-task-time {
   font-size: 13px;
   font-weight: 600;
-  color: #1677ff;
+  color: var(--batch-accent);
 }
 
 .page-header__next-task-empty {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--batch-text-secondary);
 }
 
 .header-sub-actions {
@@ -6455,7 +6563,7 @@ const stopBatch = () => {
   margin: 12px 0 0;
   font-size: 14px;
   line-height: 1.7;
-  color: #5f6b7a;
+  color: var(--batch-text-secondary);
 }
 
 .page-header__primary-actions {
@@ -6503,7 +6611,7 @@ const stopBatch = () => {
 .cron-parser {
   margin-top: 12px;
   padding: 12px;
-  background-color: var(--bg-tertiary);
+  background-color: var(--batch-surface-soft);
   border-radius: 8px;
 }
 
@@ -6514,18 +6622,18 @@ const stopBatch = () => {
 }
 
 .cron-validation.success {
-  background-color: rgba(24, 160, 88, 0.12);
+  background-color: var(--batch-success-soft);
 }
 
 .cron-validation.error {
-  background-color: rgba(235, 87, 87, 0.12);
+  background-color: var(--batch-error-soft);
 }
 
 .cron-next-runs h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--batch-text);
 }
 
 .cron-next-runs ul {
@@ -6537,8 +6645,8 @@ const stopBatch = () => {
 .cron-next-runs li {
   padding: 6px 0;
   font-size: 13px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--batch-text-secondary);
+  border-bottom: 1px solid var(--batch-divider);
 }
 
 .cron-next-runs li:last-child {
@@ -6561,37 +6669,42 @@ const stopBatch = () => {
 .log-container {
   flex: 1;
   overflow-y: auto;
-  background: #f5f5f5;
-  padding: 10px;
-  border-radius: 4px;
+  background: var(--batch-log-bg);
+  color: var(--batch-log-text);
+  border: 1px solid var(--batch-log-border);
+  padding: 12px;
+  border-radius: 12px;
   margin-top: 10px;
   font-family: monospace;
   min-height: 200px;
+  box-shadow: var(--batch-log-inset-shadow);
+  scrollbar-color: var(--batch-text-tertiary) transparent;
 }
 
 .log-item {
   margin-bottom: 4px;
   font-size: 12px;
+  line-height: 1.6;
 }
 
 .log-item.error {
-  color: #d03050;
+  color: var(--batch-error);
 }
 
 .log-item.success {
-  color: #18a058;
+  color: var(--batch-success);
 }
 
 .log-item.warning {
-  color: #f0a020;
+  color: var(--batch-warning);
 }
 
 .log-item.info {
-  color: #333;
+  color: var(--batch-log-text);
 }
 
 .time {
-  color: #999;
+  color: var(--batch-log-time);
   margin-right: 8px;
 }
 
@@ -6617,7 +6730,7 @@ const stopBatch = () => {
 
 .setting-label {
   font-size: 14px;
-  color: #666;
+  color: var(--batch-setting-text);
 }
 
 .setting-switches {
@@ -6631,7 +6744,7 @@ const stopBatch = () => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--batch-divider);
 }
 
 .switch-row:last-child {
@@ -6640,7 +6753,7 @@ const stopBatch = () => {
 
 .switch-label {
   font-size: 14px;
-  color: #666;
+  color: var(--batch-setting-text);
 }
 
 /* Responsive Design */
@@ -6667,7 +6780,7 @@ const stopBatch = () => {
     z-index: 20;
     margin-bottom: 14px;
     padding-bottom: 4px;
-    background: linear-gradient(180deg, rgba(245, 247, 250, 0.96), rgba(245, 247, 250, 0.82));
+    background: var(--batch-mobile-shell-bg);
     backdrop-filter: blur(12px);
   }
 
@@ -6803,13 +6916,13 @@ const stopBatch = () => {
   /* 批量功法残卷赠送样式 */
   .recipient-info:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--batch-recipient-hover-shadow);
   }
 
   /* 头像悬停效果 */
   .avatar-container:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: var(--batch-avatar-hover-shadow);
   }
 
   /* 加载动画 */
@@ -6826,9 +6939,9 @@ const stopBatch = () => {
   /* Token分组管理样式 */
   .group-selection-section {
     padding: 12px;
-    background-color: #f5f7fa;
+    background-color: var(--batch-group-bg);
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--batch-group-border);
   }
 
   .group-tag {
@@ -6843,7 +6956,7 @@ const stopBatch = () => {
 
   .group-tag:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--batch-hover-shadow);
   }
 
   .group-tag-selected {

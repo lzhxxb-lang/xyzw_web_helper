@@ -737,6 +737,10 @@ onUnmounted(() => {
   }
 }
 
+.game-status-container > * {
+  min-width: 0;
+}
+
 .full-grid {
   grid-template-columns: repeat(1, 1fr);
 }

@@ -2493,6 +2493,7 @@ onMounted(() => {
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-medium);
   padding: var(--spacing-md);
+  min-width: 0;
 
   h4 {
     margin: 0 0 var(--spacing-sm) 0;
@@ -2527,6 +2528,7 @@ onMounted(() => {
   transition: all 0.2s;
   cursor: grab;
   border: 2px solid transparent;
+  min-width: 0;
 
   &:hover {
     background: var(--primary-color-light);
@@ -2552,6 +2554,7 @@ onMounted(() => {
   margin-left: auto;
   min-width: 60px;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .hero-position {
@@ -2639,6 +2642,7 @@ onMounted(() => {
   gap: 2px;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
 }
 
 .hero-header {
@@ -2691,6 +2695,7 @@ onMounted(() => {
     display: flex;
     gap: 6px;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   span {
@@ -2753,15 +2758,15 @@ onMounted(() => {
   font-size: var(--font-size-xs);
 }
 
-.exchange-btn {
-  flex-shrink: 0;
-  width: 100%;
-}
+// .exchange-btn {
+//   flex-shrink: 0;
+//   width: 100%;
+// }
 
-.remove-btn {
-  flex-shrink: 0;
-  width: 100%;
-}
+// .remove-btn {
+//   flex-shrink: 0;
+//   width: 100%;
+// }
 
 .saved-lineups-section {
   h4 {
@@ -3003,6 +3008,44 @@ onMounted(() => {
 .team-selector {
   display: flex;
   gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .current-team-section {
+    padding: var(--spacing-sm);
+
+    h4 {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+  }
+
+  .hero-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: var(--spacing-sm);
+  }
+
+  .hero-info {
+    flex: 1 1 140px;
+  }
+
+  .hero-fish {
+    max-width: 100%;
+  }
+
+  .hero-stats span {
+    min-width: 0;
+    flex: 1 1 calc(50% - 3px);
+  }
+
+  .hero-actions {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    flex-direction: row;
+  }
 }
 
 .refine-modal-content {

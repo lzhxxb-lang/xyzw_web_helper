@@ -673,10 +673,13 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 .identity-embedded {
   grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .identity-card.embedded {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   position: relative;
   background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
   border-radius: var(--border-radius-xl);
@@ -792,6 +795,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
   z-index: 3;
 }
 
@@ -814,6 +818,10 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   font-size: var(--font-size-md);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .role-stats {
@@ -821,6 +829,8 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   font-size: var(--font-size-sm);
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .activity-week {
@@ -828,9 +838,22 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   font-size: var(--font-size-sm);
   margin-top: 4px;
   font-weight: var(--font-weight-medium);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.role-info-section {
+  min-width: 0;
 }
 
 
+
+@media (max-width: 900px) {
+  .identity-card.embedded {
+    width: min(100%, calc(100vw - var(--spacing-sm) * 2));
+    margin: 0 auto;
+  }
+}
 
 @media (max-width: 768px) {
   .card-header {
@@ -850,6 +873,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    width: 100%;
   }
 
   .role-stats {
@@ -859,7 +883,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 
   .resources {
-    grid-template-columns: repeat(2, 1fr); // 手机端强制两列
+    grid-template-columns: repeat(2, minmax(0, 1fr)); // 手机端强制两列
     gap: 6px;
   }
 
@@ -954,6 +978,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   gap: 8px;
   margin-top: 10px;
   --res-item-height: 44px;
+  min-width: 0;
 }
 
 .resources.collapsed {
@@ -970,6 +995,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .resources-toggle {
@@ -982,9 +1008,13 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 .res-item .label {
   color: var(--text-secondary);
   font-size: 12px;
+  min-width: 0;
 }
 
 .res-item .value {
   font-weight: var(--font-weight-semibold);
+  min-width: 0;
+  text-align: right;
+  word-break: break-word;
 }
 </style>
