@@ -26,19 +26,19 @@
       <a-modal
         class="token-import-modal"
         v-model:visible="showImportForm"
-        width="40rem"
+        width="min(40rem, calc(100vw - 24px))"
         :footer="false"
         :default-visible="!tokenStore.hasTokens"
       >
         <template #title>
-          <h2>
+          <h2 class="import-modal-title">
             <n-icon>
               <Add />
             </n-icon>
             添加游戏Token
           </h2>
         </template>
-        <div class="card-header">
+        <div class="import-card-header">
           <!-- 导入方式选择 -->
           <n-radio-group
             v-model:value="importMethod"
@@ -52,7 +52,7 @@
             <n-radio-button value="singlebin"> BIN单角色获取 </n-radio-button>
           </n-radio-group>
         </div>
-        <div class="card-body">
+        <div class="import-card-body">
           <manual-token-form
             @cancel="() => (showImportForm = false)"
             @ok="() => (showImportForm = false)"
@@ -84,14 +84,22 @@
       <!-- Token列表 -->
       <div v-if="tokenStore.hasTokens" class="tokens-section">
         <div class="section-header">
-          <n-space align="center">
+          <n-space class="section-toolbar" align="center">
             <h2>我的Token列表 ({{ tokenStore.gameTokens.length }}个)</h2>
-            <n-radio-group v-model:value="viewMode" size="small">
+            <n-radio-group
+              v-model:value="viewMode"
+              class="view-mode-switch"
+              size="small"
+            >
               <n-radio-button value="list">列表</n-radio-button>
               <n-radio-button value="card">卡片</n-radio-button>
             </n-radio-group>
-            <n-divider vertical style="height: 24px"></n-divider>
-            <n-button-group size="small">
+            <n-divider
+              class="section-divider"
+              vertical
+              style="height: 24px"
+            ></n-divider>
+            <n-button-group class="sort-controls" size="small">
               <n-button
                 @click="toggleSort('name')"
                 :type="sortConfig.field === 'name' ? 'primary' : 'default'"
@@ -169,30 +177,34 @@
             @click="selectToken(token)"
           >
             <template #title>
-              <a-space class="token-name" align="center">
-                <n-avatar
-                  v-if="token.avatar"
-                  :src="token.avatar"
-                  round
-                  size="small"
-                  fallback-src="/icons/xiaoyugan.png"
-                />
-                {{ token.name }}
-                <a-tag
-                  :color="getServerTagColor(token.id)"
-                  v-if="token.server"
-                  >{{ token.server }}</a-tag
-                >
-                <!-- 连接状态指示器 -->
-                <a-badge
-                  :status="getTokenStyle(token.id)"
-                  :text="getConnectionStatusText(token.id)"
-                />
-                <!-- 连接状态文字 -->
-                <!-- <a-tag color="green">
-                  {{ getConnectionStatusText(token.id) }}
-                </a-tag> -->
-              </a-space>
+              <div class="token-card-title">
+                <div class="token-card-identity">
+                  <n-avatar
+                    v-if="token.avatar"
+                    :src="token.avatar"
+                    round
+                    size="small"
+                    fallback-src="/icons/xiaoyugan.png"
+                  />
+                  <span class="token-title-text">{{ token.name }}</span>
+                </div>
+                <div class="token-card-badges">
+                  <a-tag
+                    :color="getServerTagColor(token.id)"
+                    v-if="token.server"
+                    >{{ token.server }}</a-tag
+                  >
+                  <!-- 连接状态指示器 -->
+                  <a-badge
+                    :status="getTokenStyle(token.id)"
+                    :text="getConnectionStatusText(token.id)"
+                  />
+                  <!-- 连接状态文字 -->
+                  <!-- <a-tag color="green">
+                    {{ getConnectionStatusText(token.id) }}
+                  </a-tag> -->
+                </div>
+              </div>
             </template>
             <template #extra>
               <n-dropdown
@@ -248,6 +260,7 @@
               </div>
 
               <a-button
+                class="token-refresh-button"
                 :loading="refreshingTokens.has(token.id)"
                 @click.stop="refreshToken(token)"
               >
@@ -352,6 +365,7 @@
           <n-card
             v-for="(token, index) in sortedTokens"
             :key="token.id"
+            class="token-list-card"
             draggable="true"
             @dragstart="handleDragStart(index, $event)"
             @dragover="handleDragOver($event)"
@@ -362,9 +376,13 @@
             @click="selectToken(token)"
             :class="{ active: selectedTokenId === token.id }"
           >
-            <n-space justify="space-between" align="center">
+            <n-space
+              class="token-list-row"
+              justify="space-between"
+              align="center"
+            >
               <!-- Info -->
-              <n-space align="center" :size="6">
+              <n-space class="token-list-info" align="center" :size="6">
                 <!-- 连接状态 - 移动到最前端显示 -->
                 <div style="min-width: 65px">
                   <a-badge
@@ -457,7 +475,7 @@
               </n-space>
 
               <!-- Actions -->
-              <n-space>
+              <n-space class="token-list-actions">
                 <!-- 存储类型 -->
                 <n-tag
                   size="small"
@@ -1710,24 +1728,42 @@ onUnmounted(() => {
   background: var(--bg-primary);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-2xl);
-  box-shadow: var(--shadow-large);
+  box-shadow: var(--shadow-heavy);
   max-width: 600px;
   margin: 0 auto;
 }
 
-.card-header {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
+.import-modal-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
 
-  h2 {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    color: var(--text-primary);
-    font-size: var(--font-size-xl);
-    margin-bottom: var(--spacing-sm);
-  }
+:global(.token-import-modal .arco-modal) {
+  box-sizing: border-box;
+  width: min(40rem, calc(100vw - var(--spacing-lg))) !important;
+  max-width: calc(100vw - var(--spacing-lg));
+}
+
+:global(.token-import-modal .arco-modal-header) {
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-md);
+  border-bottom: 1px solid var(--border-light);
+}
+
+:global(.token-import-modal .arco-modal-body) {
+  max-height: min(78vh, 720px);
+  overflow-y: auto;
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+}
+
+.import-card-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
 
   p {
     color: var(--text-secondary);
@@ -1740,12 +1776,84 @@ onUnmounted(() => {
     margin: 0;
     font-weight: var(--font-weight-normal);
   }
+}
 
-  .import-method-tabs {
-    margin-top: var(--spacing-md);
-    display: flex;
-    justify-content: center;
-  }
+.import-method-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: minmax(38px, auto);
+  gap: var(--spacing-sm);
+  align-items: stretch;
+  height: auto !important;
+  width: 100%;
+}
+
+.import-method-tabs :deep(.n-radio-group__splitor) {
+  display: none !important;
+}
+
+.import-method-tabs :deep(.n-radio-button) {
+  width: 100%;
+  min-height: 38px;
+  border-radius: var(--border-radius-medium) !important;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.import-method-tabs :deep(.n-radio-button__label) {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-method-tabs :deep(.n-radio-button__state-border) {
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--border-radius-medium) !important;
+}
+
+.import-method-tabs :deep(.n-radio-button:hover) {
+  color: var(--primary-color);
+}
+
+.import-method-tabs :deep(.n-radio-button.n-radio-button--checked) {
+  background: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+
+.import-method-tabs
+  :deep(.n-radio-button.n-radio-button--checked .n-radio-button__state-border) {
+  border-color: var(--primary-color) !important;
+}
+
+.import-card-body {
+  width: 100%;
+  min-width: 0;
+}
+
+.import-card-body :deep(.n-form) {
+  width: 100%;
+}
+
+.import-card-body :deep(.n-form-item) {
+  min-width: 0;
+}
+
+.import-card-body :deep(.n-input),
+.import-card-body :deep(.n-input-wrapper),
+.import-card-body :deep(.arco-upload-wrapper),
+.import-card-body :deep(.arco-list) {
+  max-width: 100%;
+}
+
+.import-card-body :deep(.arco-list-item) {
+  overflow: hidden;
+}
+
+.import-card-body :deep(.arco-list-item span) {
+  overflow-wrap: anywhere;
 }
 
 .form-tips {
@@ -1817,8 +1925,22 @@ onUnmounted(() => {
 }
 
 [data-theme="dark"] .n-radio-button--checked {
-  background-color: rgba(16, 185, 129, 0.8) !important;
+  background-color: var(--primary-color) !important;
   color: #ffffff !important;
+}
+
+[data-theme="dark"] .import-method-tabs :deep(.n-radio-button) {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"]
+  .import-method-tabs
+  :deep(.n-radio-button.n-radio-button--checked) {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .import-method-tabs :deep(.n-radio-button__state-border) {
+  border-color: var(--border-medium) !important;
 }
 
 [data-theme="dark"] .form-tip {
@@ -1861,15 +1983,14 @@ onUnmounted(() => {
 }
 
 .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-md);
+  align-items: start;
   position: sticky;
   top: 0;
   z-index: 10;
   background: var(--bg-primary);
-  padding: var(--spacing-lg) 0;
   margin: -var(--spacing-xl) -var(--spacing-xl) var(--spacing-md);
   padding: var(--spacing-xl);
   border-bottom: 1px solid var(--border-light);
@@ -1881,18 +2002,45 @@ onUnmounted(() => {
   }
 }
 
+.section-toolbar {
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.section-toolbar :deep(.n-space) {
+  min-width: 0;
+}
+
+.view-mode-switch {
+  flex-shrink: 0;
+}
+
+.sort-controls {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 1px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sort-controls::-webkit-scrollbar {
+  display: none;
+}
+
 .header-actions {
   display: flex;
   gap: var(--spacing-md);
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .tokens-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: var(--spacing-lg);
   overflow-y: auto;
   padding-right: var(--spacing-sm);
@@ -1922,8 +2070,10 @@ onUnmounted(() => {
 .token-card {
   border: 2px solid var(--border-light);
   border-radius: var(--border-radius-large);
-  padding: var(--spacing-lg);
+  padding: 0;
   cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
   transition: all var(--transition-normal);
 
   &:hover {
@@ -1939,6 +2089,89 @@ onUnmounted(() => {
   &.connected {
     border-left: 4px solid var(--success-color);
   }
+}
+
+.token-card :deep(.arco-card-header) {
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  height: auto !important;
+  min-height: 46px;
+  min-width: 0;
+  overflow: visible;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.token-card :deep(.arco-card-header-title) {
+  min-width: 0;
+  white-space: normal;
+}
+
+.token-card :deep(.arco-card-extra) {
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+}
+
+.token-card :deep(.arco-card-body) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.token-card :deep(.arco-card-actions) {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  border-top: 0;
+}
+
+.token-card :deep(.arco-card-actions-right) {
+  flex: 1;
+  width: 100%;
+}
+
+.token-card :deep(.arco-card-actions-item) {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.token-card :deep(.arco-card-actions-right .n-button--block) {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+}
+
+.token-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.token-card-identity,
+.token-card-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.token-card-badges {
+  flex-wrap: wrap;
+}
+
+.token-title-text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.token-card-badges :deep(.arco-badge),
+.token-card-badges :deep(.arco-tag) {
+  max-width: 100%;
 }
 
 .tokens-list {
@@ -1965,13 +2198,6 @@ onUnmounted(() => {
   &::-webkit-scrollbar-thumb:hover {
     background: var(--border-dark);
   }
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-md);
 }
 
 .token-info {
@@ -2007,10 +2233,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
   padding: var(--spacing-sm);
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-medium);
+  min-width: 0;
 }
 
 .token-label {
@@ -2024,6 +2250,8 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .connection-status {
@@ -2064,7 +2292,7 @@ onUnmounted(() => {
 }
 
 .token-remark {
-  margin: var(--spacing-sm) 0;
+  margin: 0;
   padding: var(--spacing-sm);
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-small);
@@ -2101,11 +2329,13 @@ onUnmounted(() => {
 .remark-value {
   font-style: italic;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .token-timestamps {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-sm);
 }
 
@@ -2123,6 +2353,38 @@ onUnmounted(() => {
 .timestamp-value {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.token-refresh-button {
+  align-self: flex-start;
+}
+
+.token-list-card {
+  border: 1px solid var(--border-light);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.token-list-card.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.token-list-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.token-list-info,
+.token-list-actions {
+  min-width: 0;
+}
+
+.token-list-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .card-footer {
@@ -2240,31 +2502,192 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .token-import-page {
+    padding: var(--spacing-lg) 0;
+  }
+
   .container {
     padding: 0 var(--spacing-md);
   }
 
+  .page-header {
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .brand-logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  :global(.token-import-modal .arco-modal-header) {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  :global(.token-import-modal .arco-modal) {
+    width: calc(100vw - var(--spacing-lg)) !important;
+  }
+
+  :global(.token-import-modal .arco-modal-body) {
+    max-height: calc(100vh - 112px);
+    padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  }
+
+  .import-method-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .tokens-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    padding-right: 0;
   }
 
   .optional-fields {
     grid-template-columns: 1fr;
   }
 
+  .tokens-section {
+    max-height: none;
+    padding: var(--spacing-lg);
+  }
+
   .section-header {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: var(--spacing-md);
-    align-items: stretch;
+    margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-lg) * -1)
+      var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+
+  .section-toolbar {
+    width: 100%;
+  }
+
+  .section-divider {
+    display: none;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+    overflow-x: visible;
+  }
+
+  .tokens-list {
+    padding-right: 0;
+  }
+
+  .token-list-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .token-list-actions {
+    justify-content: flex-start;
   }
 
   .token-timestamps {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .storage-info {
+    display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 520px) {
+  :global(.token-import-modal .arco-modal) {
+    width: calc(100vw - var(--spacing-md)) !important;
+    max-width: calc(100vw - var(--spacing-md));
+  }
+
+  :global(.token-import-modal .arco-modal-header) {
+    padding: var(--spacing-md);
+  }
+
+  :global(.token-import-modal .arco-modal-body) {
+    padding: var(--spacing-md);
+  }
+
+  .import-modal-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .import-method-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-xs);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .import-method-tabs :deep(.n-radio-button) {
+    min-height: 36px;
+  }
+
+  .import-method-tabs :deep(.n-radio-button__label) {
+    font-size: var(--font-size-xs);
+  }
+
+  .tokens-section {
+    border-radius: var(--border-radius-large);
+    padding: var(--spacing-md);
+  }
+
+  .section-header {
+    margin: calc(var(--spacing-md) * -1) calc(var(--spacing-md) * -1)
+      var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .section-toolbar :deep(.n-space) {
+    row-gap: var(--spacing-sm) !important;
+  }
+
+  .section-toolbar {
+    row-gap: var(--spacing-sm) !important;
+  }
+
+  .sort-controls {
+    width: 100%;
+  }
+
+  .sort-controls :deep(.n-button) {
+    flex: 1 0 auto;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .header-actions :deep(.n-button) {
+    width: 100%;
+  }
+
+  .token-card :deep(.arco-card-header),
+  .token-card :deep(.arco-card-body),
+  .token-card :deep(.arco-card-actions) {
+    padding-right: var(--spacing-md);
+    padding-left: var(--spacing-md);
+  }
+
+  .token-title-text {
+    white-space: normal;
+  }
+
+  .token-display {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .token-refresh-button {
+    width: 100%;
+  }
+
+  .token-list-actions :deep(.n-button:not(.n-button--circle)) {
+    flex: 1 1 calc(50% - var(--spacing-sm));
   }
 }
 
@@ -2280,6 +2703,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .storage-label {
