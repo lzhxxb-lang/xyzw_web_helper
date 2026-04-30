@@ -5,7 +5,11 @@
         <n-notification-provider>
           <n-dialog-provider>
             <div id="app">
-              <router-view />
+              <router-view v-slot="{ Component, route }">
+                <transition name="fade-transform" mode="out-in">
+                  <component :is="Component" :key="getRootRouteKey(route)" />
+                </transition>
+              </router-view>
             </div>
           </n-dialog-provider>
         </n-notification-provider>
@@ -26,6 +30,10 @@ const { isDark, initTheme, setupSystemThemeListener, updateReactiveState } =
 const naiveTheme = computed(() => {
   return isDark.value ? darkTheme : null;
 });
+
+const getRootRouteKey = (route) => {
+  return route.matched[0]?.path || route.path;
+};
 
 // 监听主题变化事件
 const handleThemeChange = () => {
@@ -207,9 +215,31 @@ body[data-theme="dark"] .n-popover-container {
   min-height: 100vh;
   background: var(--app-background);
   color: var(--text-color);
+  overflow-x: clip;
   transition:
     background 0.3s ease,
     color 0.3s ease;
+}
+
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow-x: clip;
+  transition: all 0.25s;
+  will-change: opacity, transform;
+}
+
+.fade-transform-enter,
+.fade-transform-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 
 /* 全局样式重置 */
@@ -222,6 +252,9 @@ body[data-theme="dark"] .n-popover-container {
 html,
 body {
   height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   font-family:
     "SF Pro Display",
     -apple-system,

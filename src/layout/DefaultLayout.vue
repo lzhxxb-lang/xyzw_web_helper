@@ -259,7 +259,7 @@
           <span>游戏功能</span>
         </router-link>
         <router-link
-          to="/tokens"
+          to="/admin/tokens"
           class="drawer-item"
           @click="isMobileMenuOpen = false"
         >
@@ -316,8 +316,15 @@
         </router-link>
       </div>
     </n-drawer>
+
+    <MobileBottomNav />
+
     <div class="main">
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <transition name="fade-transform" mode="out-in">
+          <component :is="Component" :key="route.fullPath" />
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
@@ -329,6 +336,7 @@ import {
   selectedTokenId,
 } from "@/stores/tokenStore";
 import ThemeToggle from "@/components/Common/ThemeToggle.vue";
+import MobileBottomNav from "@/components/Common/MobileBottomNav.vue";
 import {
   Home,
   PersonCircle,
@@ -441,7 +449,7 @@ const handleSelectToken = (tokenId) => {
 const goToTokenManager = () => {
   isAccountSwitcherOpen.value = false;
   isMobileMenuOpen.value = false;
-  router.push("/tokens");
+  router.push("/admin/tokens");
 };
 
 const refreshSelectedToken = () => {
@@ -472,7 +480,7 @@ const handleUserAction = async (key) => {
         onPositiveClick: async () => {
           await tokenStore.clearAllTokens();
           message.success("已清除所有Token");
-          router.push("/tokens");
+          router.push("/admin/tokens");
         },
       });
       break;
@@ -481,6 +489,28 @@ const handleUserAction = async (key) => {
 </script>
 
 <style scoped lang="scss">
+.default-layout {
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.main {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  isolation: isolate;
+}
+
+@supports not (overflow: clip) {
+  .default-layout,
+  .main {
+    overflow-x: hidden;
+  }
+}
+
 // 导航栏
 .dashboard-nav {
   background: var(--bg-primary);
@@ -926,6 +956,10 @@ const handleUserAction = async (key) => {
 
   .user-settings-button {
     display: none;
+  }
+
+  .main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
 }
 

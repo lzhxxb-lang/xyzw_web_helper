@@ -17,19 +17,9 @@ const my_routes = [
   },
   {
     path: '/tokens',
-    name: 'TokenImport',
-    component: () => import('@/views/TokenImport/index.vue'),
-    meta: {
-      title: 'Token管理',
-      requiresToken: false
-    },
-    props: route => ({
-      token: route.query.token,
-      name: route.query.name,
-      server: route.query.server,
-      wsUrl: route.query.wsUrl,
-      api: route.query.api,
-      auto: route.query.auto === 'true'
+    redirect: route => ({
+      path: '/admin/tokens',
+      query: route.query
     })
   },
   {
@@ -45,6 +35,23 @@ const my_routes = [
           title: '控制台',
           requiresToken: true
         }
+      },
+      {
+        path: 'tokens',
+        name: 'TokenImport',
+        component: () => import('@/views/TokenImport/index.vue'),
+        meta: {
+          title: 'Token管理',
+          requiresToken: false
+        },
+        props: route => ({
+          token: route.query.token,
+          name: route.query.name,
+          server: route.query.server,
+          wsUrl: route.query.wsUrl,
+          api: route.query.api,
+          auto: route.query.auto === 'true'
+        })
       },
       {
         path: 'game-features',
@@ -116,15 +123,15 @@ const my_routes = [
   // 兼容旧路由，重定向到新的token管理页面
   {
     path: '/login',
-    redirect: '/tokens'
+    redirect: '/admin/tokens'
   },
   {
     path: '/register',
-    redirect: '/tokens'
+    redirect: '/admin/tokens'
   },
   {
     path: '/game-roles',
-    redirect: '/tokens'
+    redirect: '/admin/tokens'
   },
   // 增加自动路由引用
   ...generatedRoutes,
@@ -167,13 +174,13 @@ router.beforeEach((to, from, next) => {
   // 检查是否需要Token
   // if (to.meta.requiresToken  && tokenStore.getWebSocketStatus(tokenStore.selectedToken.id)=="disconnected") {
     if (to.meta.requiresToken  && !tokenStore.hasTokens) {
-    next('/tokens')
+    next('/admin/tokens')
   } else if (to.path === '/' && tokenStore.hasTokens) {
     // 首页重定向逻辑
     if (tokenStore.selectedToken) {
       next('/admin/dashboard')
     } else {
-      next('/tokens')
+      next('/admin/tokens')
     }
   } else {
     next()
