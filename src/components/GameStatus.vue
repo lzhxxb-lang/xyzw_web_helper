@@ -40,14 +40,17 @@
     <!-- 咸将塔状态 -->
     <TowerStatus v-show="activeSection === 'daily' && isShowTowerStatus" />
 
-    <!-- 怪异塔状态 -->
-    <WeirdTowerStatus v-show="activeSection === 'daily'" />
-
     <!-- 盐罐机器人状态（提取组件） -->
     <BottleHelperCard v-show="activeSection === 'daily'" />
 
     <!-- 挂机状态（提取组件） -->
     <HangUpStatusCard v-show="activeSection === 'daily'" />
+
+    <!-- 功法残卷领取（单账号） -->
+    <LegacyClaimCard v-show="activeSection === 'daily'" />
+
+    <!-- 怪异塔状态 -->
+    <WeirdTowerStatus v-show="activeSection === 'daily'" />
 
     <!-- 无限阵容助手（提取组件） -->
     <Unlimitedlineup v-show="activeSection === 'tools'" />
@@ -318,6 +321,7 @@ import FishHelperCard from "./cards/FishHelperCard.vue";
 import RecruitHelperCard from "./cards/RecruitHelperCard.vue";
 import StarUpgradeCard from "./cards/StarUpgradeCard.vue";
 import HangUpStatusCard from "./cards/HangUpStatusCard.vue";
+import LegacyClaimCard from "./cards/LegacyClaimCard.vue";
 import MonthlyTasksCard from "./cards/MonthlyTasksCard.vue";
 import StudyChallengeCard from "./cards/StudyChallengeCard.vue";
 import SkinChallengeCard from "./cards/SkinChallengeCard.vue";

@@ -48,6 +48,7 @@ declare module 'vue' {
     HangUpStatusCard: typeof import('./src/components/cards/HangUpStatusCard.vue')['default']
     HeroUpgradeCard: typeof import('./src/components/cards/HeroUpgradeCard.vue')['default']
     IdentityCard: typeof import('./src/components/Common/IdentityCard.vue')['default']
+    LegacyClaimCard: typeof import('./src/components/cards/LegacyClaimCard.vue')['default']
     LegionWarMap: typeof import('./src/components/Club/LegionWarMap.vue')['default']
     LegionWarStatistics: typeof import('./src/components/Club/LegionWarStatistics.vue')['default']
     MessageTester: typeof import('./src/components/Test/MessageTester.vue')['default']
