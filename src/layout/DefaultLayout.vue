@@ -959,7 +959,7 @@ const handleUserAction = async (key) => {
   }
 
   .main {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    padding-bottom: calc(65px + env(safe-area-inset-bottom));
   }
 }
 
