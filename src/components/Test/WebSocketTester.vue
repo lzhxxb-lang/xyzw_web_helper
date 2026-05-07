@@ -80,8 +80,18 @@
                 v-model:value="selectedCommand"
                 placeholder="请选择要测试的命令"
                 :options="commandOptions"
+                filterable
+                @update:value="onCommandChange"
               />
             </n-form-item>
+
+            <n-alert
+              v-if="selectedCommandMeta?.dangerous"
+              type="warning"
+              :bordered="false"
+            >
+              该命令可能消耗资源或改变游戏数据，请确认参数后再发送。
+            </n-alert>
 
             <n-form-item v-if="selectedCommand" label="命令参数 (JSON)">
               <n-input
@@ -187,17 +197,143 @@ const roleOptions = computed(() => {
 });
 
 // 命令选项
-const commandOptions = [
-  { label: "获取角色信息", value: "role_getroleinfo" },
-  { label: "获取数据包版本", value: "system_getdatabundlever" },
-  { label: "签到奖励", value: "system_signinreward" },
-  { label: "领取每日任务奖励", value: "task_claimdailyreward" },
-  { label: "获取邮件列表", value: "mail_getlist" },
-  { label: "领取所有邮件附件", value: "mail_claimallattachment" },
-  { label: "获取军团信息", value: "legion_getinfo" },
-  { label: "英雄招募", value: "hero_recruit" },
-  { label: "领取挂机奖励", value: "system_claimhangupreward" },
+const gameCommands = [
+  { label: "获取角色信息 role_getroleinfo", value: "role_getroleinfo" },
+  {
+    label: "获取数据包版本 system_getdatabundlever",
+    value: "system_getdatabundlever",
+    params: { isAudit: false },
+  },
+  { label: "签到奖励 system_signinreward", value: "system_signinreward" },
+  {
+    label: "领取每日任务奖励 task_claimdailyreward",
+    value: "task_claimdailyreward",
+    params: { rewardId: 0 },
+    dangerous: true,
+  },
+  { label: "获取邮件列表 mail_getlist", value: "mail_getlist" },
+  {
+    label: "领取所有邮件附件 mail_claimallattachment",
+    value: "mail_claimallattachment",
+    dangerous: true,
+  },
+  { label: "获取军团信息 legion_getinfo", value: "legion_getinfo" },
+  {
+    label: "英雄招募 hero_recruit",
+    value: "hero_recruit",
+    dangerous: true,
+  },
+  {
+    label: "领取挂机奖励 system_claimhangupreward",
+    value: "system_claimhangupreward",
+    dangerous: true,
+  },
+  {
+    label: "宠物列表 pet_load",
+    value: "pet_load",
+  },
+  {
+    label: "i扭蛋信息 gacha_getinfo",
+    value: "gacha_getinfo",
+  },
+  {
+    label: "限时活动 activity_get",
+    value: "activity_get",
+  },
+  {
+    label: "指定活动 activity_getsome",
+    value: "activity_getsome",
+    params: {
+      activityIds: [],
+    },
+  },
+  {
+    label: "宠物开蛋 pet_openegg",
+    value: "pet_openegg",
+    params: {
+      itemId: 0,
+      num: 1,
+    },
+    dangerous: true,
+  },
+  {
+    label: "宠物合成 pet_merge",
+    value: "pet_merge",
+    params: {
+      petUIds: [],
+    },
+    dangerous: true,
+  },
+  {
+    label: "宠物精炼 pet_quench",
+    value: "pet_quench",
+    params: {
+      petUId: "",
+      slot: 0,
+      seed: 0,
+    },
+    dangerous: true,
+  },
+  {
+    label: "确认宠物精炼 pet_quenchconfirm",
+    value: "pet_quenchconfirm",
+    params: {
+      petUId: "",
+      slot: 0,
+    },
+    dangerous: true,
+  },
+  {
+    label: "i扭蛋抽取 gacha_drawreward",
+    value: "gacha_drawreward",
+    params: {
+      activityId: 0,
+      drawNum: 1,
+    },
+    dangerous: true,
+  },
+  {
+    label: "i扭蛋阶段奖励 gacha_claimstagereward",
+    value: "gacha_claimstagereward",
+    params: {
+      activityId: 0,
+      stageId: 0,
+    },
+    dangerous: true,
+  },
+  {
+    label: "彩玉狂欢升级 activity_upgradequenchcarnivallevel",
+    value: "activity_upgradequenchcarnivallevel",
+    params: {
+      activityId: 0,
+    },
+    dangerous: true,
+  },
+  {
+    label: "彩玉狂欢领奖 activity_claimquenchcarnivallevel",
+    value: "activity_claimquenchcarnivallevel",
+    params: {
+      activityId: 0,
+      level: 0,
+    },
+    dangerous: true,
+  },
+  {
+    label: "活动抽奖 activity_skinlottery",
+    value: "activity_skinlottery",
+    params: {
+      activityId: 0,
+      num: 1,
+    },
+    dangerous: true,
+  },
 ];
+
+const commandOptions = gameCommands;
+
+const selectedCommandMeta = computed(() =>
+  gameCommands.find((command) => command.value === selectedCommand.value),
+);
 
 // 方法
 const getStatusType = (statusValue) => {
@@ -229,6 +365,12 @@ const formatTime = (timestamp) => {
 
 const onRoleChange = () => {
   updateStatus();
+};
+
+const onCommandChange = (command) => {
+  const params =
+    gameCommands.find((option) => option.value === command)?.params ?? {};
+  commandParams.value = JSON.stringify(params, null, 2);
 };
 
 const updateStatus = () => {
