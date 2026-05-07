@@ -42,7 +42,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
-
+source_info/
 # Coverage directory used by tools like istanbul
 coverage/
 
