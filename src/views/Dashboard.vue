@@ -145,7 +145,7 @@ const handleQuickAction = (action) => {
       router.push("/admin/game-features");
       break;
     case "websocket-test":
-      router.push("/websocket-test");
+      router.push("/admin/websocket-test");
       break;
     case "open-settings":
       router.push("/admin/profile");

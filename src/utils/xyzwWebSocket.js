@@ -133,7 +133,28 @@ export class CommandRegistry {
   /** 构造报文 */
   build(cmd, ack, seq, params) {
     const fn = this.commands.get(cmd);
-    if (!fn) throw new Error(`Unknown cmd: ${cmd}`);
+    if (!fn) {
+      const payload =
+        params === undefined || params === null
+          ? {}
+          : Array.isArray(params)
+            ? params
+            : typeof params === "object"
+              ? { ...params }
+              : params;
+
+      wsLogger.warn(`未注册命令，使用动态BON体发送: ${cmd}`);
+
+      return {
+        cmd,
+        ack,
+        seq,
+        time: Date.now(),
+        body: this.encoder?.bon?.encode
+          ? this.encoder.bon.encode(payload)
+          : payload,
+      };
+    }
     return fn(ack, seq, params);
   }
 }
@@ -244,6 +265,8 @@ export function registerDefaultCommands(reg) {
     .register("mergebox_openbox")
     .register("mergebox_automergeitem", { actType: 1 })
     .register("mergebox_mergeitem", { actType: 1 })
+    .register("mergebox_moveitem")
+    .register("mergebox_useboxitem")
     .register("mergebox_claimcostprogress", { actType: 1 })
     .register("mergebox_claimmergeprogress", { actType: 1 })
     .register("evotower_claimtask", { taskId: 1 })
@@ -310,6 +333,16 @@ export function registerDefaultCommands(reg) {
     .register("dungeon_buymerchant")
     // 活动/任务
     .register("activity_get")
+    .register("activity_getsome")
+    .register("activity_buygoods")
+    .register("activity_commonbuygoods")
+    .register("activity_claimtaskreward")
+    .register("activity_claimmilestone")
+    .register("activity_claimmilestonereward")
+    .register("activity_claimquenchcarnivallevel")
+    .register("activity_upgradequenchcarnivallevel")
+    .register("activity_claimredquenchreward")
+    .register("activity_skinlottery")
     .register("activity_recyclewarorderrewardclaim")
     .register("legion_getpayloadtask")
     .register("legion_getpayloadkillrecord")
@@ -323,6 +356,8 @@ export function registerDefaultCommands(reg) {
     // 珍宝阁相关
     .register("collection_claimfreereward")
     .register("collection_goodslist")
+    // 扭蛋相关
+    .register("gacha_drawreward", { num: 1, isGroup: false })
 
     // 车辆相关
     .register("car_getrolecar")
@@ -379,6 +414,24 @@ export function registerDefaultCommands(reg) {
     .register("towers_getinfo")
     .register("towers_start")
     .register("towers_fight")
+
+    // 新版本功能探索：宠物、i扭蛋工坊
+    .register("pet_load")
+    .register("pet_openegg")
+    .register("pet_merge")
+    .register("pet_quench")
+    .register("pet_quenchconfirm")
+    .register("pet_lockquench")
+    .register("pet_updatelock")
+    .register("pet_unlockslot")
+    .register("pet_swap")
+    .register("pet_switch")
+    .register("pet_activatebook")
+    .register("pet_claimbookreward")
+    .register("pet_useexpitem")
+    .register("gacha_getinfo")
+    .register("gacha_drawreward")
+    .register("gacha_claimstagereward")
 
     //发送游戏内消息
     .register("system_sendchatmessage");
@@ -1037,6 +1090,20 @@ export class XyzwWebSocketClient {
       // 1:1 响应映射（优先级高）
       fight_startpvpresp: "fight_startpvp",
       activity_getresp: "activity_get",
+      activity_getsomeresp: "activity_getsome",
+      activity_claimmilestonerewardresp: "activity_claimmilestonereward",
+      activity_claimquenchcarnivallevelresp:
+        "activity_claimquenchcarnivallevel",
+      activity_upgradequenchcarnivallevelresp:
+        "activity_upgradequenchcarnivallevel",
+      activity_skinlotteryresp: "activity_skinlottery",
+      activity_rewardresp: [
+        "activity_buygoods",
+        "activity_commonbuygoods",
+        "activity_claimtaskreward",
+        "activity_claimmilestone",
+        "activity_claimredquenchreward",
+      ],
       collection_goodslistresp: "collection_goodslist",
       collection_claimfreerewardresp: "collection_claimfreereward",
       legion_getarearankresp: "legion_getarearank",
@@ -1073,9 +1140,27 @@ export class XyzwWebSocketClient {
       mergebox_openboxresp: "mergebox_openbox",
       mergebox_automergeitemresp: "mergebox_automergeitem",
       mergebox_mergeitemresp: "mergebox_mergeitem",
+      mergebox_moveitemresp: "mergebox_moveitem",
+      mergebox_useboxitemresp: "mergebox_useboxitem",
       mergebox_claimcostprogressresp: "mergebox_claimcostprogress",
       mergebox_claimmergeprogressresp: "mergebox_claimmergeprogress",
       evotower_claimtaskresp: "evotower_claimtask",
+      pet_loadresp: "pet_load",
+      pet_openeggresp: "pet_openegg",
+      pet_mergeresp: "pet_merge",
+      pet_quenchresp: "pet_quench",
+      pet_quenchconfirmresp: "pet_quenchconfirm",
+      pet_lockquenchresp: "pet_lockquench",
+      pet_updatelockresp: "pet_updatelock",
+      pet_unlockslotresp: "pet_unlockslot",
+      pet_swapresp: "pet_swap",
+      pet_switchresp: "pet_switch",
+      pet_activatebookresp: "pet_activatebook",
+      pet_claimbookrewardresp: "pet_claimbookreward",
+      pet_useexpitemresp: "pet_useexpitem",
+      gacha_getinforesp: "gacha_getinfo",
+      gacha_drawrewardresp: "gacha_drawreward",
+      gacha_claimstagerewardresp: "gacha_claimstagereward",
       item_openpackresp: "item_openpack",
       equipment_quenchresp: "equipment_quench",
       rank_getserverrankresp: "rank_getserverrank",

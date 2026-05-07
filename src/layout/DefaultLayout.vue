@@ -54,6 +54,16 @@
             </n-icon>
             <span>消息测试</span>
           </router-link>
+          <router-link
+            to="/admin/websocket-test"
+            class="nav-item"
+            active-class="active"
+          >
+            <n-icon>
+              <Cloud />
+            </n-icon>
+            <span>命令测试</span>
+          </router-link>
           <router-link to="/admin/legion-war" class="nav-item" active-class="active"  v-if="isNowInLegionWarTime()" >
             <n-icon>
               <LockOpen />
@@ -298,6 +308,16 @@
           </n-icon>
           <span>消息测试</span>
         </router-link>
+        <router-link
+          to="/admin/websocket-test"
+          class="drawer-item"
+          @click="isMobileMenuOpen = false"
+        >
+          <n-icon>
+            <Cloud />
+          </n-icon>
+          <span>命令测试</span>
+        </router-link>
           <router-link to="/admin/legion-war" class="nav-item" active-class="active"  v-if="isNowInLegionWarTime()" >
             <n-icon>
               <LockOpen />
@@ -347,6 +367,7 @@ import {
   LockOpen,
   Menu,
   Layers,
+  Cloud,
   Search,
   Refresh,
   Checkmark,
@@ -959,7 +980,7 @@ const handleUserAction = async (key) => {
   }
 
   .main {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    padding-bottom: calc(65px + env(safe-area-inset-bottom));
   }
 }
 

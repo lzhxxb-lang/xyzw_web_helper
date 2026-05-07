@@ -72,6 +72,15 @@ const my_routes = [
         }
       },
       {
+        path: 'websocket-test',
+        name: 'WebSocketTest',
+        component: () => import('@/components/Test/WebSocketTester.vue'),
+        meta: {
+          title: 'WebSocket测试',
+          requiresToken: true
+        }
+      },
+      {
         path: 'legion-war',
         name: 'LegionWar',
         component: () => import('@/views/LegionWar.vue'),
@@ -113,12 +122,7 @@ const my_routes = [
   },
   {
     path: '/websocket-test',
-    name: 'WebSocketTest',
-    component: () => import('@/components/Test/WebSocketTester.vue'),
-    meta: {
-      title: 'WebSocket测试',
-      requiresToken: true
-    }
+    redirect: '/admin/websocket-test'
   },
   // 兼容旧路由，重定向到新的token管理页面
   {

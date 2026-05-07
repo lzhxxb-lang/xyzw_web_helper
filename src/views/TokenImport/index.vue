@@ -2503,7 +2503,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .token-import-page {
-    padding: var(--spacing-lg) 0 calc(72px + env(safe-area-inset-bottom));
+    padding: var(--spacing-lg) 0 calc(65px + env(safe-area-inset-bottom));
   }
 
   .container {
