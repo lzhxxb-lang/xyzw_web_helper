@@ -20,7 +20,7 @@
               >
                 进入游戏功能
               </n-button>
-              <n-button size="large" @click="handleManageTokens">
+              <n-button type="warning" size="large"  @click="handleManageTokens">
                 管理Token
               </n-button>
             </div>

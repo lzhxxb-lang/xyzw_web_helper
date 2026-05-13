@@ -175,8 +175,8 @@ onBeforeUnmount(() => {
     width: var(--indicator-size);
     height: var(--indicator-size);
     border-radius: var(--border-radius-medium);
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.28);
+    background: linear-gradient(135deg, #0f766e 0%, #17324d 100%);
+    box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
     opacity: 0;
     pointer-events: none;
     transform: translate3d(var(--indicator-x), var(--indicator-y), 0)

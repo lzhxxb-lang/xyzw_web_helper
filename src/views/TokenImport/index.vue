@@ -4,12 +4,38 @@
       <!-- 页面头部 -->
       <div class="page-header">
         <div class="header-content">
-          <div class="header-top">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <!-- 主题切换按钮 -->
-            <ThemeToggle />
+          <div class="header-copy">
+            <span class="header-eyebrow">账号连接中心</span>
+            <h1>游戏Token管理</h1>
+            <p>
+              集中导入、刷新与连接账号，保持批量执行前的账号状态清晰可控。
+            </p>
           </div>
-          <h1>游戏Token管理</h1>
+          <div class="header-aside">
+            <div class="header-brand">
+              <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
+              <span>XYZW</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="tokenStore.hasTokens" class="token-summary-grid">
+          <div class="token-summary-card">
+            <span class="token-summary-label">账号总数</span>
+            <strong>{{ tokenStore.gameTokens.length }}</strong>
+          </div>
+          <div class="token-summary-card">
+            <span class="token-summary-label">已连接</span>
+            <strong>{{ connectedTokenCount }}</strong>
+          </div>
+          <div class="token-summary-card">
+            <span class="token-summary-label">长期有效</span>
+            <strong>{{ permanentTokenCount }}</strong>
+          </div>
+          <div class="token-summary-card">
+            <span class="token-summary-label">临时存储</span>
+            <strong>{{ temporaryTokenCount }}</strong>
+          </div>
         </div>
       </div>
 
@@ -652,7 +678,15 @@ import {
   TrashBin,
 } from "@vicons/ionicons5";
 import { NIcon, NAlert, useDialog, useMessage } from "naive-ui";
-import { h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  h,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import { transformToken, scheduleAuthUserRequest } from "@/utils/token";
 import { $emit } from "@/stores/events/index.ts";
@@ -711,6 +745,27 @@ const sortConfig = ref(
         field: "createdAt", // 排序字段：name, server, createdAt, lastUsed
         direction: "asc", // 排序方向：asc, desc
       },
+);
+
+const isPermanentToken = (token) =>
+  token.importMethod === "url" ||
+  token.importMethod === "bin" ||
+  token.importMethod === "wxQrcode" ||
+  token.upgradedToPermanent;
+
+const connectedTokenCount = computed(
+  () =>
+    tokenStore.gameTokens.filter(
+      (token) => tokenStore.getWebSocketStatus(token.id) === "connected",
+    ).length,
+);
+
+const permanentTokenCount = computed(
+  () => tokenStore.gameTokens.filter((token) => isPermanentToken(token)).length,
+);
+
+const temporaryTokenCount = computed(
+  () => tokenStore.gameTokens.length - permanentTokenCount.value,
 );
 
 // 排序后的游戏角色Token列表
@@ -1651,73 +1706,162 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .token-import-page {
+  --tokens-page-bg:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 34%),
+    linear-gradient(180deg, #f2f7f5 0%, #e8f0ed 100%);
+  --tokens-panel-bg: rgba(255, 255, 255, 0.86);
+  --tokens-panel-strong: rgba(255, 255, 255, 0.94);
+  --tokens-border: rgba(31, 52, 71, 0.12);
+  --tokens-shadow: 0 20px 46px rgba(18, 38, 63, 0.12);
+  --tokens-soft-shadow: 0 10px 24px rgba(18, 38, 63, 0.08);
+  --tokens-accent: #0f766e;
+  --tokens-accent-soft: rgba(15, 118, 110, 0.12);
+  --tokens-ink: #13212f;
+  --tokens-muted: #607083;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: var(--spacing-xl) 0;
+  background: var(--tokens-page-bg);
+  padding: clamp(18px, 3vw, 34px) 0;
+  color: var(--text-primary);
+  overflow-x: clip;
 }
 
 /* 深色主题下的页面背景 */
 [data-theme="dark"] .token-import-page {
-  background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+  --tokens-page-bg:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.1), transparent 34%),
+    linear-gradient(180deg, #0d1622 0%, #111827 100%);
+  --tokens-panel-bg: rgba(22, 32, 45, 0.82);
+  --tokens-panel-strong: rgba(28, 40, 55, 0.94);
+  --tokens-border: rgba(148, 163, 184, 0.18);
+  --tokens-shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
+  --tokens-soft-shadow: 0 10px 26px rgba(0, 0, 0, 0.26);
+  --tokens-accent: #2dd4bf;
+  --tokens-accent-soft: rgba(45, 212, 191, 0.14);
+  --tokens-ink: #f8fafc;
+  --tokens-muted: #a7b4c2;
+  background: var(--tokens-page-bg);
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
 }
 
 .page-header {
-  text-align: center;
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: clamp(18px, 3vw, 30px);
 }
 
 .header-content {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--tokens-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, var(--tokens-panel-strong), var(--tokens-panel-bg)),
+    repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent 10px,
+      rgba(15, 118, 110, 0.035) 10px,
+      rgba(15, 118, 110, 0.035) 11px
+    );
+  box-shadow: var(--tokens-shadow);
+  backdrop-filter: blur(16px);
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+.header-eyebrow {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-md);
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  position: relative;
-  width: 100%;
-  justify-content: center;
-}
-
-.theme-toggle {
-  position: absolute;
-  right: 0;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.brand-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--border-radius-medium);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  padding: 5px 11px;
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-radius: 999px;
+  background: var(--tokens-accent-soft);
+  color: var(--tokens-accent);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .header-content h1 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  margin: 0;
-  color: #ffffff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin: 12px 0 0;
+  color: var(--tokens-ink);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1.08;
 }
 
 .header-content p {
-  font-size: var(--font-size-lg);
-  margin: 0;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: var(--tokens-muted);
+  font-size: var(--font-size-md);
+  line-height: 1.8;
+}
+
+.header-aside {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--tokens-border);
+  border-radius: 16px;
+  background: var(--tokens-panel-strong);
+  color: var(--tokens-ink);
+  font-weight: 800;
+  box-shadow: var(--tokens-soft-shadow);
+}
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  filter: drop-shadow(0 8px 16px rgba(15, 118, 110, 0.22));
+}
+
+.token-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.token-summary-card {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--tokens-border);
+  border-radius: 16px;
+  background: var(--tokens-panel-bg);
+  box-shadow: var(--tokens-soft-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.token-summary-label {
+  display: block;
+  color: var(--tokens-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.token-summary-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--tokens-ink);
+  font-size: 26px;
+  line-height: 1.1;
 }
 
 .import-section {
@@ -1961,10 +2105,12 @@ onUnmounted(() => {
 }
 
 .tokens-section {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
+  background: var(--tokens-panel-bg);
+  border: 1px solid var(--tokens-border);
+  border-radius: 22px;
   padding: var(--spacing-xl);
-  box-shadow: var(--shadow-medium);
+  box-shadow: var(--tokens-shadow);
+  backdrop-filter: blur(16px);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - var(--spacing-2xl) * 4);
@@ -1972,14 +2118,14 @@ onUnmounted(() => {
 
 /* 深色主题下的列表区域背景 */
 [data-theme="dark"] .tokens-section {
-  background: rgba(45, 55, 72, 0.9);
-  color: #ffffff;
+  background: var(--tokens-panel-bg);
+  color: var(--text-primary);
 }
 
 /* 深色主题下的固定头部 */
 [data-theme="dark"] .section-header {
-  background: rgba(45, 55, 72, 0.9);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: var(--tokens-panel-strong);
+  border-bottom-color: var(--tokens-border);
 }
 
 .section-header {
@@ -1990,10 +2136,12 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--bg-primary);
+  background: var(--tokens-panel-strong);
   margin: -var(--spacing-xl) -var(--spacing-xl) var(--spacing-md);
   padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--tokens-border);
+  border-radius: 22px 22px 0 0;
+  backdrop-filter: blur(14px);
 
   h2 {
     color: var(--text-primary);
@@ -2038,6 +2186,12 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
+.section-toolbar :deep(.n-radio-button),
+.sort-controls :deep(.n-button),
+.header-actions :deep(.n-button) {
+  border-radius: 10px;
+}
+
 .tokens-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
@@ -2068,22 +2222,25 @@ onUnmounted(() => {
 }
 
 .token-card {
-  border: 2px solid var(--border-light);
-  border-radius: var(--border-radius-large);
+  border: 1px solid var(--tokens-border);
+  border-radius: 18px;
   padding: 0;
   cursor: pointer;
   min-width: 0;
   overflow: hidden;
+  background: var(--tokens-panel-strong);
+  box-shadow: var(--tokens-soft-shadow);
   transition: all var(--transition-normal);
 
   &:hover {
-    box-shadow: var(--shadow-medium);
-    transform: translateY(-2px);
+    border-color: rgba(15, 118, 110, 0.28);
+    box-shadow: 0 18px 32px rgba(18, 38, 63, 0.14);
+    transform: translateY(-3px);
   }
 
   &.active {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12), var(--tokens-soft-shadow);
   }
 
   &.connected {
@@ -2099,7 +2256,8 @@ onUnmounted(() => {
   min-width: 0;
   overflow: visible;
   padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--tokens-border);
+  background: linear-gradient(180deg, var(--tokens-panel-strong), transparent);
 }
 
 .token-card :deep(.arco-card-header-title) {
@@ -2234,8 +2392,9 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-medium);
+  background: var(--tokens-accent-soft);
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 12px;
   min-width: 0;
 }
 
@@ -2294,8 +2453,9 @@ onUnmounted(() => {
 .token-remark {
   margin: 0;
   padding: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-small);
+  background: var(--bg-secondary);
+  border: 1px solid var(--tokens-border);
+  border-radius: 12px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   cursor: pointer;
@@ -2361,15 +2521,24 @@ onUnmounted(() => {
 }
 
 .token-list-card {
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--tokens-border);
+  border-radius: 16px;
+  background: var(--tokens-panel-strong);
+  box-shadow: 0 6px 16px rgba(18, 38, 63, 0.06);
   transition:
     border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.token-list-card:hover {
+  border-color: rgba(15, 118, 110, 0.24);
+  transform: translateY(-1px);
 }
 
 .token-list-card.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .token-list-row {
@@ -2511,12 +2680,31 @@ onUnmounted(() => {
   }
 
   .page-header {
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .header-content {
+    flex-direction: column;
+    padding: var(--spacing-lg);
+    border-radius: 18px;
+  }
+
+  .header-aside {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-content h1 {
+    font-size: 30px;
+  }
+
+  .token-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .brand-logo {
-    width: 52px;
-    height: 52px;
+    width: 36px;
+    height: 36px;
   }
 
   :global(.token-import-modal .arco-modal-header) {
@@ -2630,8 +2818,20 @@ onUnmounted(() => {
   }
 
   .tokens-section {
-    border-radius: var(--border-radius-large);
+    border-radius: 16px;
     padding: var(--spacing-md);
+  }
+
+  .token-summary-grid {
+    gap: var(--spacing-sm);
+  }
+
+  .token-summary-card {
+    padding: 12px;
+  }
+
+  .token-summary-card strong {
+    font-size: 22px;
   }
 
   .section-header {
@@ -2718,10 +2918,10 @@ onUnmounted(() => {
 }
 
 :global([data-theme="dark"] .token-import-modal .arco-modal) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #102536 0%, #172233 100%) !important;
 }
 
 [data-theme="dark"] .token-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--tokens-panel-strong);
 }
 </style>

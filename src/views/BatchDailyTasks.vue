@@ -297,7 +297,9 @@
                     margin-bottom: 12px;
                   "
                 >
-                  <label style="font-weight: 500; color: #333">分组选择</label>
+                  <label style="font-weight: 500; color: var(--batch-text)"
+                    >分组选择</label
+                  >
                   <n-button
                     size="small"
                     type="error"
@@ -350,7 +352,7 @@
                 </n-button>
                 <span
                   v-if="selectedGroups.length > 0"
-                  style="font-size: 12px; color: #86909c"
+                  style="font-size: 12px; color: var(--batch-text-tertiary)"
                 >
                   已选择 {{ selectedGroups.length }} 个分组，包含
                   {{ selectedTokens.length }} 个账号
@@ -466,7 +468,7 @@
         </n-card>
 
         <!-- Batch Functions -->
-        <n-card title="批量功能列表" style="margin-top: 16px">
+        <n-card title="批量功能列表" class="batch-functions-card">
           <n-tabs type="line" animated>
             <n-tab-pane name="daily" tab="日常">
               <n-space>
@@ -831,7 +833,11 @@
                     : "执行日志"
                 }}
                 <span
-                  style="margin-left: 12px; font-size: 12px; color: #86909c"
+                  style="
+                    margin-left: 12px;
+                    font-size: 12px;
+                    color: var(--batch-text-tertiary);
+                  "
                 >
                   {{ logs.length }}/{{ batchSettings.maxLogEntries || 1000 }}
                 </span>
@@ -1390,7 +1396,7 @@
                   height: 80px;
                   border-radius: 50%;
                   overflow: hidden;
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  background: linear-gradient(135deg, #0f766e 0%, #17324d 100%);
                   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                   display: flex;
                   align-items: center;
@@ -1530,7 +1536,11 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 16px; font-weight: 600; color: #667eea"
+                      style="
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: var(--batch-accent);
+                      "
                     >
                       {{ recipientInfo.power }} {{ recipientInfo.powerUnit }}
                     </div>
@@ -6060,17 +6070,20 @@ const stopBatch = () => {
   --batch-text: var(--text-primary);
   --batch-text-secondary: var(--text-secondary);
   --batch-text-tertiary: var(--text-tertiary);
-  --batch-accent: var(--primary-color);
+  --batch-accent: #0f766e;
   --batch-success: var(--success-color);
   --batch-warning: var(--warning-color);
   --batch-error: var(--error-color);
-  --batch-eyebrow-bg: rgba(102, 126, 234, 0.1);
-  --batch-running-badge-bg: rgba(102, 126, 234, 0.14);
-  --batch-running-badge-border: rgba(102, 126, 234, 0.2);
-  --batch-running-badge-text: var(--primary-color);
-  --batch-accent-border: rgba(102, 126, 234, 0.18);
+  --batch-eyebrow-bg: rgba(15, 118, 110, 0.11);
+  --batch-running-badge-bg: rgba(15, 118, 110, 0.14);
+  --batch-running-badge-border: rgba(15, 118, 110, 0.22);
+  --batch-running-badge-text: #0f766e;
+  --batch-accent-border: rgba(15, 118, 110, 0.2);
   --batch-card-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
   --batch-panel-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  --batch-page-bg:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 34%),
+    linear-gradient(180deg, #f2f7f5 0%, #e8f0ed 100%);
   --batch-mobile-shell-bg: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.92),
@@ -6082,16 +6095,16 @@ const stopBatch = () => {
     var(--batch-surface-muted) 100%
   );
   --batch-intro-card-bg:
-    radial-gradient(circle at top right, rgba(102, 126, 234, 0.16), transparent 42%),
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.16), transparent 42%),
     linear-gradient(
       135deg,
       var(--batch-surface) 0%,
       var(--batch-surface-muted) 55%,
-      rgba(230, 247, 255, 0.42) 100%
+      rgba(217, 243, 238, 0.46) 100%
     );
   --batch-accent-panel-bg: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.12),
+    rgba(15, 118, 110, 0.12),
     var(--batch-surface)
   );
   --batch-glass-bg: rgba(255, 255, 255, 0.6);
@@ -6112,17 +6125,20 @@ const stopBatch = () => {
   --batch-group-border: var(--batch-border);
   --batch-hover-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
   --batch-recipient-hover-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
-  --batch-avatar-hover-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  --batch-avatar-hover-shadow: 0 6px 16px rgba(15, 118, 110, 0.26);
+  background: var(--batch-page-bg);
   padding: 20px;
-  height: 100vh;
+  min-height: 100dvh;
+  height: calc(100dvh - 64px);
   box-sizing: border-box;
   overflow: hidden;
 }
 
 [data-theme="dark"] .batch-daily-tasks {
-  --batch-accent-border: rgba(129, 140, 248, 0.22);
-  --batch-running-badge-bg: rgba(102, 126, 234, 0.22);
-  --batch-running-badge-border: rgba(129, 140, 248, 0.28);
+  --batch-accent: #2dd4bf;
+  --batch-accent-border: rgba(45, 212, 191, 0.22);
+  --batch-running-badge-bg: rgba(20, 184, 166, 0.22);
+  --batch-running-badge-border: rgba(45, 212, 191, 0.28);
   --batch-running-badge-text: #dbe4ff;
   --batch-card-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
   --batch-panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
@@ -6137,16 +6153,16 @@ const stopBatch = () => {
     rgba(55, 65, 81, 0.94) 100%
   );
   --batch-intro-card-bg:
-    radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 42%),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.16), transparent 42%),
     linear-gradient(
       135deg,
       rgba(31, 41, 55, 0.98) 0%,
       rgba(55, 65, 81, 0.96) 58%,
-      rgba(67, 56, 202, 0.18) 100%
+      rgba(15, 118, 110, 0.2) 100%
     );
   --batch-accent-panel-bg: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.18),
+    rgba(20, 184, 166, 0.16),
     rgba(31, 41, 55, 0.92)
   );
   --batch-glass-bg: rgba(31, 41, 55, 0.58);
@@ -6163,7 +6179,7 @@ const stopBatch = () => {
   --batch-group-border: rgba(75, 85, 99, 0.92);
   --batch-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   --batch-recipient-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
-  --batch-avatar-hover-shadow: 0 6px 16px rgba(102, 126, 234, 0.28);
+  --batch-avatar-hover-shadow: 0 6px 16px rgba(45, 212, 191, 0.22);
 }
 
 .main-layout {
@@ -6171,6 +6187,8 @@ const stopBatch = () => {
   gap: 20px;
   height: 100%;
   overflow: hidden;
+  max-width: 1480px;
+  margin: 0 auto;
 }
 
 .left-column {
@@ -6178,14 +6196,16 @@ const stopBatch = () => {
   overflow-y: auto;
   min-width: 0;
   padding-right: 8px;
+  scrollbar-color: var(--batch-text-tertiary) transparent;
 }
 
 .right-column {
-  width: 400px;
+  width: clamp(340px, 29vw, 430px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  height: 700px;
+  height: 100%;
+  min-height: 0;
 }
 
 .page-header {
@@ -6357,11 +6377,12 @@ const stopBatch = () => {
   position: relative;
   min-width: 0;
   padding: 18px 20px;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--batch-border);
   background: var(--batch-panel-gradient);
   box-shadow: var(--batch-card-shadow);
   overflow: hidden;
+  backdrop-filter: blur(14px);
 }
 
 .page-header__card--intro {
@@ -6576,12 +6597,48 @@ const stopBatch = () => {
 .token-item {
   display: flex;
   align-items: center;
+  min-width: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.token-list-card,
+.batch-functions-card,
+.log-card {
+  border: 1px solid var(--batch-border);
+  border-radius: 18px;
+  background: var(--batch-panel-gradient);
+  box-shadow: var(--batch-panel-shadow);
+  overflow: hidden;
+}
+
+.token-list-card :deep(.n-card-header),
+.batch-functions-card :deep(.n-card-header),
+.log-card :deep(.n-card-header) {
+  border-bottom: 1px solid var(--batch-divider);
+}
+
+.batch-functions-card {
+  margin-top: 16px;
+}
+
+.batch-functions-card :deep(.n-tabs-nav-scroll-content) {
+  min-width: max-content;
+}
+
+.batch-functions-card :deep(.n-space) {
+  row-gap: 10px !important;
+}
+
+.batch-functions-card :deep(.n-button) {
+  border-radius: 10px;
 }
 
 .log-card {
   height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .custom-card-header {
@@ -6658,6 +6715,7 @@ const stopBatch = () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .log-header-controls {
@@ -6682,9 +6740,19 @@ const stopBatch = () => {
 }
 
 .log-item {
-  margin-bottom: 4px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.34);
   font-size: 12px;
   line-height: 1.6;
+}
+
+[data-theme="dark"] .log-item {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .log-item.error {
@@ -6705,14 +6773,30 @@ const stopBatch = () => {
 
 .time {
   color: var(--batch-log-time);
-  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.message {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .token-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding-right: 8px;
+  min-width: 0;
+}
+
+.token-row :deep(.n-checkbox) {
+  min-width: 0;
+}
+
+.token-row :deep(.n-checkbox__label) {
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Settings Modal Styles */
@@ -6771,6 +6855,7 @@ const stopBatch = () => {
   .batch-daily-tasks {
     height: auto;
     overflow: visible;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
   .mobile-priority-header {
@@ -6822,6 +6907,7 @@ const stopBatch = () => {
     min-height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
 
   .main-layout {
@@ -6903,9 +6989,15 @@ const stopBatch = () => {
   }
 
   .log-header-controls {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
     gap: 4px;
+    width: 100%;
+  }
+
+  .log-header-controls :deep(.n-button) {
+    width: 100%;
   }
 
   .header-sub-actions,
@@ -7001,9 +7093,28 @@ const stopBatch = () => {
       text-align: center;
     }
 
+    .token-row {
+      align-items: flex-start;
+      padding-right: 0;
+    }
+
+    .token-item {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-item {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
     .avatar-container {
       margin-bottom: 12px;
     }
   }
 }
 </style>
+  --batch-page-bg:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.1), transparent 34%),
+    linear-gradient(180deg, #0d1622 0%, #111827 100%);
