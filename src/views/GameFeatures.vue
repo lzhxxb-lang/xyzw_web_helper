@@ -5,9 +5,10 @@
       <div class="container">
         <div class="header-content">
           <div class="header-left">
+            <span class="page-eyebrow">实时功能台</span>
             <h1 class="page-title">游戏功能</h1>
             <p class="page-subtitle">
-              {{ tokenStore.selectedToken?.name || "未选择Token" }}
+              当前账号：{{ tokenStore.selectedToken?.name || "未选择Token" }}
             </p>
           </div>
 
@@ -18,6 +19,14 @@
               </n-icon>
               <span>{{ connectionStatusText }}</span>
             </div>
+            <n-button
+              strong
+              secondary
+              :type="isConnected ? 'error' : 'primary'"
+              @click="toggleConnection"
+            >
+              {{ isConnected ? "断开连接" : "重新连接" }}
+            </n-button>
           </div>
         </div>
       </div>
@@ -311,7 +320,7 @@ const initializeGameData = async () => {
       tokenId,
       "fight_startlevel",
     );
-    tokenStore.setBattleVersion(res?.battleData?.version);
+    tokenStore.setBattleVersion(res?.battleData?.version, tokenId);
   } catch (error) {
     // 静默处理初始化异常
   }
@@ -324,21 +333,44 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .game-features-page {
+  --features-page-bg:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 30%),
+    linear-gradient(180deg, #f4f8f6 0%, #e8f0ed 100%);
+  --features-panel-bg: rgba(255, 255, 255, 0.86);
+  --features-panel-strong: rgba(255, 255, 255, 0.94);
+  --features-border: rgba(31, 52, 71, 0.12);
+  --features-shadow: 0 20px 46px rgba(18, 38, 63, 0.12);
+  --features-soft-shadow: 0 10px 24px rgba(18, 38, 63, 0.08);
+  --features-accent: #0f766e;
+  --features-accent-soft: rgba(15, 118, 110, 0.12);
+  --features-ink: #13212f;
+  --features-muted: #607083;
   min-height: 100dvh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--features-page-bg);
   padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  overflow-x: clip;
 }
 
 /* 深色主题下背景 */
 [data-theme="dark"] .game-features-page {
-  background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+  --features-page-bg:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.1), transparent 32%),
+    linear-gradient(180deg, #0d1622 0%, #111827 100%);
+  --features-panel-bg: rgba(22, 32, 45, 0.82);
+  --features-panel-strong: rgba(28, 40, 55, 0.94);
+  --features-border: rgba(148, 163, 184, 0.18);
+  --features-shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
+  --features-soft-shadow: 0 10px 26px rgba(0, 0, 0, 0.26);
+  --features-accent: #2dd4bf;
+  --features-accent-soft: rgba(45, 212, 191, 0.14);
+  --features-ink: #f8fafc;
+  --features-muted: #a7b4c2;
+  background: var(--features-page-bg);
 }
 
 // 页面头部
 .page-header {
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-light);
-  padding: var(--spacing-lg) 0;
+  padding: clamp(18px, 3vw, 34px) 0 var(--spacing-md);
 }
 
 .container {
@@ -358,8 +390,9 @@ onUnmounted(() => {
 
     .header-content {
       flex-direction: column;
-      gap: var(--spacing-sm);
-      text-align: center;
+      align-items: stretch;
+      gap: var(--spacing-md);
+      text-align: left;
     }
 
     .page-title {
@@ -383,24 +416,62 @@ onUnmounted(() => {
 .header-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
+  gap: var(--spacing-lg);
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--features-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, var(--features-panel-strong), var(--features-panel-bg)),
+    repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent 10px,
+      rgba(15, 118, 110, 0.035) 10px,
+      rgba(15, 118, 110, 0.035) 11px
+    );
+  box-shadow: var(--features-shadow);
+  backdrop-filter: blur(16px);
 }
 
 .header-left {
   flex: 1;
+  min-width: 0;
+}
+
+.page-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-radius: 999px;
+  background: var(--features-accent-soft);
+  color: var(--features-accent);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .page-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  color: var(--features-ink);
+  line-height: 1.08;
+  margin: 12px 0 0;
 }
 
 .page-subtitle {
-  color: var(--text-secondary);
+  color: var(--features-muted);
   font-size: var(--font-size-md);
-  margin: 0;
+  margin: 10px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .connection-status {
@@ -408,29 +479,32 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-medium);
+  border: 1px solid transparent;
+  border-radius: 999px;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 
   &.connected {
     background: rgba(24, 160, 88, 0.1);
+    border-color: rgba(24, 160, 88, 0.18);
     color: var(--success-color);
   }
 
   &.disconnected {
     background: rgba(208, 48, 80, 0.1);
+    border-color: rgba(208, 48, 80, 0.18);
     color: var(--error-color);
   }
 }
 
 // 反馈提示区域
 .feedback-section {
-  padding: var(--spacing-md) 0;
+  display: none;
 }
 
 // 功能模块网格
 .features-grid-section {
-  padding: var(--spacing-xl) 0;
+  padding: var(--spacing-md) 0 var(--spacing-lg);
 }
 
 .features-grid {
@@ -598,10 +672,12 @@ onUnmounted(() => {
 }
 
 .ws-status-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-large);
+  background: var(--features-panel-bg);
+  border: 1px solid var(--features-border);
+  border-radius: 18px;
   padding: var(--spacing-lg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--features-soft-shadow);
+  backdrop-filter: blur(14px);
 }
 
 .status-header {
@@ -628,8 +704,9 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-md);
   padding: var(--spacing-sm) 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--features-border);
 
   &:last-child {
     border-bottom: none;
@@ -643,6 +720,8 @@ onUnmounted(() => {
   span:last-child {
     font-weight: var(--font-weight-medium);
     font-size: var(--font-size-sm);
+    text-align: right;
+    overflow-wrap: anywhere;
   }
 }
 

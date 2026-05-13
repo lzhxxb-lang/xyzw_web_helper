@@ -182,7 +182,8 @@
     v-model:show="helperDialogVisible"
     preset="card"
     title="选择护卫"
-    style="width: 600px"
+    class="helper-modal-card"
+    :style="helperModalStyle"
   >
     <div class="helper-body">
       <div class="helper-row">
@@ -194,13 +195,13 @@
           :loading="helperLoading"
           filterable
           :max-tag-count="1"
-          style="width: 420px"
+          class="helper-select"
         />
       </div>
       <div class="tips">说明：次数满 4 的成员不可再被选择。</div>
     </div>
     <template #footer>
-      <n-space justify="end">
+      <n-space justify="end" class="helper-footer-actions">
         <n-button @click="cancelHelper">取消</n-button>
         <n-button type="primary" @click="confirmHelper">确定</n-button>
       </n-space>
@@ -994,6 +995,11 @@ const helperLoading = ref(false);
 const helperOptions = ref([]);
 const helperSelection = ref(null);
 const currentCarForHelper = ref(null);
+const helperModalStyle = {
+  width: "min(600px, calc(100vw - 32px))",
+  maxWidth: "calc(100vw - 32px)",
+  maxHeight: "calc(100dvh - 32px)",
+};
 
 const legionInfo = computed(() => tokenStore.gameData?.legionInfo || null);
 const clubInfo = computed(() => legionInfo.value?.info || {});
@@ -1211,7 +1217,7 @@ const cancelHelper = () => {
 }
 
 .helper-body {
-  padding: 16px 0;
+  padding: 12px 0 4px;
 }
 
 .helper-row {
@@ -1222,15 +1228,26 @@ const cancelHelper = () => {
 }
 
 .helper-row .label {
+  flex: 0 0 auto;
   font-size: 14px;
   color: var(--text-secondary);
   min-width: 80px;
+}
+
+.helper-select {
+  flex: 1;
+  min-width: 0;
 }
 
 .tips {
   font-size: 12px;
   color: var(--text-tertiary);
   margin-top: 8px;
+  line-height: 1.6;
+}
+
+.helper-footer-actions {
+  width: 100%;
 }
 
 :deep(.n-select) {
@@ -1244,6 +1261,65 @@ const cancelHelper = () => {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  :deep(.helper-modal-card) {
+    border-radius: 10px;
+
+    > .n-card-header {
+      padding: 16px 16px 10px;
+    }
+
+    > .n-card__content {
+      padding: 0 16px 12px;
+      overflow-y: auto;
+    }
+
+    > .n-card__footer {
+      padding: 12px 16px 16px;
+    }
+  }
+
+  .helper-body {
+    padding-top: 4px;
+  }
+
+  .helper-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .helper-row .label {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .helper-select {
+    width: 100%;
+  }
+
+  .tips {
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+  }
+
+  .helper-footer-actions {
+    :deep(.n-space) {
+      width: 100%;
+    }
+  }
+
+  .helper-footer-actions :deep(.n-space-item) {
+    flex: 1;
+  }
+
+  .helper-footer-actions :deep(.n-button) {
+    width: 100%;
   }
 }
 </style>

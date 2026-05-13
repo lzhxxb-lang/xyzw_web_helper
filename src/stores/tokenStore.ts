@@ -88,6 +88,10 @@ export const tokenGroups = useLocalStorage<TokenGroup[]>("tokenGroups", []);
 export const useTokenStore = defineStore("tokens", () => {
   const wsConnections = ref<WebCtx>({}); // WebSocket连接状态
   const connectionLocks = ref<LockCtx>({}); // 连接操作锁，防止竞态条件
+  const isInitialized = ref(false);
+  const monitorTimerId = ref<number | null>(null);
+  const storageListenerRegistered = ref(false);
+  const battleVersionsByToken = ref<Record<string, number | null>>({});
 
   // 游戏数据存储
   const gameData = ref({
@@ -983,7 +987,7 @@ export const useTokenStore = defineStore("tokens", () => {
       "fight_startdungeon",
     ];
     if (battleCommands.includes(cmd)) {
-      const battleVersion = gameData.value.battleVersion;
+      const battleVersion = getBattleVersion(tokenId);
       params = { battleVersion, ...params };
       wsLogger.info(
         `⚔️ [战斗命令] 注入 battleVersion: ${battleVersion} [${cmd}]`,
@@ -1274,7 +1278,11 @@ export const useTokenStore = defineStore("tokens", () => {
   const connectionMonitor = {
     // 定期检查连接状态
     startMonitoring: () => {
-      setInterval(() => {
+      if (monitorTimerId.value) {
+        return;
+      }
+
+      monitorTimerId.value = window.setInterval(() => {
         const now = Date.now();
 
         // 检查连接超时（超过30秒未活动）
@@ -1374,6 +1382,11 @@ export const useTokenStore = defineStore("tokens", () => {
 
   // 监听localStorage变化（跨标签页通信）
   const setupCrossTabListener = () => {
+    if (storageListenerRegistered.value) {
+      return;
+    }
+    storageListenerRegistered.value = true;
+
     window.addEventListener("storage", (event) => {
       if (event.key?.startsWith("ws_connection_")) {
         const tokenId = event.key.replace("ws_connection_", "");
@@ -1408,6 +1421,11 @@ export const useTokenStore = defineStore("tokens", () => {
 
   // 初始化
   const initTokenStore = () => {
+    if (isInitialized.value) {
+      return;
+    }
+    isInitialized.value = true;
+
     // // 恢复数据
     // const savedTokens = localStorage.getItem('gameTokens')
     // const savedSelectedId = localStorage.getItem('selectedTokenId')
@@ -1446,12 +1464,31 @@ export const useTokenStore = defineStore("tokens", () => {
 
     tokenLogger.info("Token Store 初始化完成，连接监控已启动");
   };
-  const setBattleVersion = (version: number | null) => {
-    gameData.value.battleVersion = version;
+  const setBattleVersion = (
+    version: number | null | undefined,
+    tokenId?: string,
+  ) => {
+    if (version === undefined) {
+      return;
+    }
+
+    const normalizedVersion =
+      typeof version === "number" && Number.isFinite(version) ? version : null;
+
+    gameData.value.battleVersion = normalizedVersion;
+    if (tokenId) {
+      battleVersionsByToken.value[tokenId] = normalizedVersion;
+    }
     gameData.value.lastUpdated = new Date().toISOString();
   };
 
-  const getBattleVersion = () => {
+  const getBattleVersion = (tokenId?: string) => {
+    if (
+      tokenId &&
+      Object.prototype.hasOwnProperty.call(battleVersionsByToken.value, tokenId)
+    ) {
+      return battleVersionsByToken.value[tokenId];
+    }
     return gameData.value.battleVersion;
   };
 

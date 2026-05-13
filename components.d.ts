@@ -19,7 +19,6 @@ declare module 'vue' {
     AList: typeof import('@arco-design/web-vue')['List']
     AListItem: typeof import('@arco-design/web-vue')['ListItem']
     AModal: typeof import('@arco-design/web-vue')['Modal']
-    ASpace: typeof import('@arco-design/web-vue')['Space']
     ATag: typeof import('@arco-design/web-vue')['Tag']
     AUpload: typeof import('@arco-design/web-vue')['Upload']
     BossTower: typeof import('./src/components/Tower/BossTower.vue')['default']

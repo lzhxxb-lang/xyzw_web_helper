@@ -638,7 +638,7 @@ const handleUserAction = async (key) => {
 
 .account-switcher.is-open {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .account-switcher__avatar-wrap {
@@ -716,7 +716,7 @@ const handleUserAction = async (key) => {
   --n-border: 1px solid var(--border-light);
   --n-border-hover: 1px solid var(--border-medium);
   --n-border-focus: 1px solid var(--primary-color);
-  --n-box-shadow-focus: 0 0 0 2px rgba(102, 126, 234, 0.14);
+  --n-box-shadow-focus: 0 0 0 2px rgba(15, 118, 110, 0.14);
   border-radius: 12px;
 }
 
@@ -738,7 +738,7 @@ const handleUserAction = async (key) => {
 }
 
 .account-switcher-panel__filter.active {
-  border-color: rgba(102, 126, 234, 0.22);
+  border-color: rgba(15, 118, 110, 0.22);
   background: var(--primary-color-light);
   color: var(--primary-color);
 }
@@ -770,12 +770,12 @@ const handleUserAction = async (key) => {
 
 .account-switcher-panel__item:hover {
   transform: translateX(2px);
-  border-color: rgba(102, 126, 234, 0.24);
+  border-color: rgba(15, 118, 110, 0.24);
   background: var(--bg-secondary);
 }
 
 .account-switcher-panel__item.active {
-  border-color: rgba(102, 126, 234, 0.35);
+  border-color: rgba(15, 118, 110, 0.35);
   background: linear-gradient(135deg, var(--primary-color-light), var(--bg-primary));
 }
 
@@ -895,7 +895,7 @@ const handleUserAction = async (key) => {
 
 .account-switcher-panel__footer-action:hover:not(:disabled) {
   background: var(--bg-secondary);
-  border-color: rgba(102, 126, 234, 0.24);
+  border-color: rgba(15, 118, 110, 0.24);
 }
 
 .account-switcher-panel__footer-action:disabled {

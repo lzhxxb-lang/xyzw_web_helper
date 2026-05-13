@@ -714,7 +714,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
+  padding: 0;
 
   // 在大屏幕上限制最大列数以确保卡片有足够宽度
   @media (min-width: 1400px) {
@@ -736,7 +736,7 @@ onUnmounted(() => {
 
   @media (max-width: 768px) {
     grid-template-columns: minmax(0, 1fr);
-    padding: var(--spacing-sm);
+    padding: 0;
     gap: var(--spacing-md);
   }
 }
@@ -752,7 +752,6 @@ onUnmounted(() => {
 .game-status-container.full-page-mode {
   max-width: 100% !important;
   grid-template-columns: 1fr;
-  padding: var(--spacing-sm);
 
   @media (min-width: 1400px) {
     max-width: 100% !important;
@@ -785,10 +784,18 @@ onUnmounted(() => {
 }
 
 .section-tabs {
-  margin: 0 var(--spacing-sm) var(--spacing-md) var(--spacing-sm);
+  margin: 0 0 var(--spacing-md);
   grid-column: 1 / -1;
-  border-bottom: 1px solid var(--border-light);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-light);
   overflow: auto;
+  padding: 4px 10px 0;
+}
+
+.section-tabs :deep(.n-tabs-nav-scroll-content) {
+  min-width: max-content;
 }
 
 .section-tabs :deep(.n-tabs-pane-wrapper) {
@@ -945,7 +952,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .game-status-container {
     grid-template-columns: 1fr;
-    padding: var(--spacing-sm);
+    padding: 0;
   }
 
   .status-card {

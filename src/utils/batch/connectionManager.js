@@ -3,7 +3,7 @@
  */
 
 // 全局连接队列控制 - 限制并发连接数
-export const connectionQueue = { active: 0 };
+export const connectionQueue = { active: 0, leases: new Set() };
 
 /**
  * 创建连接管理器
@@ -17,17 +17,30 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
   /**
    * 等待连接槽位
    */
-  const waitForConnectionSlot = async () => {
+  const waitForConnectionSlot = async (tokenId) => {
+    if (tokenId && connectionQueue.leases.has(tokenId)) {
+      return false;
+    }
     while (connectionQueue.active >= batchSettings.maxActive) {
       await new Promise((r) => setTimeout(r, 1000));
     }
     connectionQueue.active++;
+    if (tokenId) {
+      connectionQueue.leases.add(tokenId);
+    }
+    return true;
   };
 
   /**
    * 释放连接槽位
    */
-  const releaseConnectionSlot = () => {
+  const releaseConnectionSlot = (tokenId) => {
+    if (tokenId && !connectionQueue.leases.has(tokenId)) {
+      return;
+    }
+    if (tokenId) {
+      connectionQueue.leases.delete(tokenId);
+    }
     if (connectionQueue.active > 0) {
       connectionQueue.active--;
     }
@@ -62,10 +75,11 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
 
     let status = tokenStore.getWebSocketStatus(tokenId);
     let connected = status === "connected";
+    let acquiredSlot = false;
 
     if (!connected) {
       // 等待连接槽位，限制并发连接数
-      await waitForConnectionSlot();
+      acquiredSlot = await waitForConnectionSlot(tokenId);
 
       addLog({
         time: new Date().toLocaleTimeString(),
@@ -97,6 +111,12 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
         });
 
         const refreshedToken = tokens.find((t) => t.id === tokenId);
+        if (!refreshedToken) {
+          if (acquiredSlot) {
+            releaseConnectionSlot(tokenId);
+          }
+          throw new Error(`Token not found after reconnect wait: ${tokenId}`);
+        }
         tokenStore.createWebSocketConnection(
           tokenId,
           refreshedToken.token,
@@ -108,7 +128,9 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
 
       if (!connected) {
         // 连接失败，释放槽位
-        releaseConnectionSlot();
+        if (acquiredSlot) {
+          releaseConnectionSlot(tokenId);
+        }
         throw new Error("连接失败 (重试后仍超时)");
       }
     }
@@ -133,7 +155,7 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
         5000
       );
       if (res?.battleData?.version) {
-        tokenStore.setBattleVersion(res.battleData.version);
+        tokenStore.setBattleVersion(res.battleData.version, tokenId);
       }
     } catch (e) {
       addLog({
@@ -143,7 +165,7 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
       });
     }
 
-    return true;
+    return { connected: true, acquiredSlot };
   };
 
   /**
@@ -153,7 +175,7 @@ export function createConnectionManager({ tokenStore, batchSettings, addLog }) {
    */
   const closeConnection = (tokenId, tokenName) => {
     tokenStore.closeWebSocketConnection(tokenId);
-    releaseConnectionSlot();
+    releaseConnectionSlot(tokenId);
     addLog({
       time: new Date().toLocaleTimeString(),
       message: `${tokenName} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,

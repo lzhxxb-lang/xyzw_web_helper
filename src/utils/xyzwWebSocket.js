@@ -54,6 +54,36 @@ const CmdDebounceMap = {
   system_getdatabundlever: 1000,
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const DEFAULT_QUEUE_LIMIT = 200;
+const DEFAULT_QUEUE_TTL = 30 * 1000;
+const GACHA_DRAW_REWARD_CMD = "gacha_drawreward";
+const GACHA_DRAW_ALLOWED_WEEKDAYS = new Set([2, 4, 6]);
+const WEEKDAY_LABELS = [
+  "周日",
+  "周一",
+  "周二",
+  "周三",
+  "周四",
+  "周五",
+  "周六",
+];
+
+const isGachaDrawRewardOpen = (date = new Date()) =>
+  GACHA_DRAW_ALLOWED_WEEKDAYS.has(date.getDay());
+
+const createGachaDrawRewardClosedError = (date = new Date()) =>
+  new Error(
+    `扭蛋抽取仅在周二、周四、周六开放，今天是${WEEKDAY_LABELS[date.getDay()]}，已自动关闭`,
+  );
+
+const assertCommandAvailable = (cmd) => {
+  if (cmd === GACHA_DRAW_REWARD_CMD && !isGachaDrawRewardOpen()) {
+    throw createGachaDrawRewardClosedError();
+  }
+};
+
 /** 为日志生成安全的 body 预览，避免控制台再次解析原始对象 */
 const formatBodyForLog = (body) => {
   if (!body) return "";
@@ -357,7 +387,7 @@ export function registerDefaultCommands(reg) {
     .register("collection_claimfreereward")
     .register("collection_goodslist")
     // 扭蛋相关
-    .register("gacha_drawreward", { num: 1, isGroup: false })
+    .register(GACHA_DRAW_REWARD_CMD, { num: 1, isGroup: false })
 
     // 车辆相关
     .register("car_getrolecar")
@@ -430,7 +460,7 @@ export function registerDefaultCommands(reg) {
     .register("pet_claimbookreward")
     .register("pet_useexpitem")
     .register("gacha_getinfo")
-    .register("gacha_drawreward")
+    .register(GACHA_DRAW_REWARD_CMD, { num: 1, isGroup: false })
     .register("gacha_claimstagereward")
 
     //发送游戏内消息
@@ -489,6 +519,8 @@ export class XyzwWebSocketClient {
     this.ack = 0;
     this.seq = 0;
     this.sendQueue = [];
+    this.maxQueueSize = DEFAULT_QUEUE_LIMIT;
+    this.queueTaskTtl = DEFAULT_QUEUE_TTL;
     this.sendQueueTimer = null;
     this.heartbeatTimer = null;
     this.heartbeatInterval = heartbeatMs;
@@ -693,6 +725,11 @@ export class XyzwWebSocketClient {
       });
       this.connected = false;
       this._clearTimers();
+      this._rejectPendingPromises(
+        new Error(
+          `WebSocket连接已关闭: ${evt.code}${evt.reason ? ` ${evt.reason}` : ""}`,
+        ),
+      );
       if (this.onDisconnect) this.onDisconnect(evt);
       if (this.sendCache) {
         $CacheManager.delCache(this.url);
@@ -703,6 +740,7 @@ export class XyzwWebSocketClient {
       wsLogger.error("WebSocket 错误:", error);
       this.connected = false;
       this._clearTimers();
+      this._rejectPendingPromises(new Error("WebSocket连接发生错误"));
       if (this.onError) this.onError(error);
     };
   }
@@ -830,6 +868,7 @@ export class XyzwWebSocketClient {
     }
     this.connected = false;
     this._clearTimers();
+    this._rejectPendingPromises(new Error("WebSocket连接已主动断开"));
   }
 
   /** debounceSend */
@@ -857,6 +896,16 @@ export class XyzwWebSocketClient {
 
   /** 发送消息 */
   send(cmd, params = {}, options = {}) {
+    try {
+      assertCommandAvailable(cmd);
+    } catch (error) {
+      wsLogger.warn(error.message);
+      if (typeof options.onBlocked === "function") {
+        options.onBlocked(error);
+      }
+      return null;
+    }
+
     if (!this.connected) {
       wsLogger.warn(`WebSocket 未连接，消息已入队: ${cmd}`);
       // 防止频繁重连
@@ -887,8 +936,11 @@ export class XyzwWebSocketClient {
       respKey: options.respKey || cmd,
       sleep: options.sleep || 0,
       onSent: options.onSent,
+      createdAt: Date.now(),
+      ttl: options.ttl ?? this.queueTaskTtl,
     };
 
+    this._trimSendQueue();
     this.sendQueue.push(task);
     return task;
   }
@@ -896,6 +948,12 @@ export class XyzwWebSocketClient {
   /** Promise 版发送 */
   sendWithPromise(cmd, params = {}, timeoutMs = 5000) {
     return new Promise((resolve, reject) => {
+      try {
+        assertCommandAvailable(cmd);
+      } catch (error) {
+        return reject(error);
+      }
+
       if (!this.connected && !this.socket) {
         return reject(new Error("WebSocket 连接已关闭"));
       }
@@ -903,18 +961,26 @@ export class XyzwWebSocketClient {
       // 为此请求生成唯一的seq值
       const requestSeq = ++this.seq;
 
-      // 设置 Promise 状态，使用seq作为键
-      this.promises[requestSeq] = { resolve, reject, originalCmd: cmd };
-
       // 超时处理
       const timer = setTimeout(() => {
-        delete this.promises[requestSeq];
+        const promiseData = this._takePromise(requestSeq);
+        if (!promiseData) return;
         reject(new Error(`请求超时: ${cmd} (${timeoutMs}ms)`));
       }, timeoutMs);
+
+      // 设置 Promise 状态，使用seq作为键
+      this.promises[requestSeq] = {
+        resolve,
+        reject,
+        originalCmd: cmd,
+        timer,
+        createdAt: Date.now(),
+      };
 
       // 发送消息，直接传递seq
       this.send(cmd, params, {
         seq: requestSeq,
+        ttl: timeoutMs,
         onSent: () => {
           // 消息发送成功后，不要清除超时器，让它继续等待响应
           // 只有在收到响应或超时时才清除
@@ -981,6 +1047,10 @@ export class XyzwWebSocketClient {
 
       const task = this.sendQueue.shift();
       if (!task) return;
+      if (this._isQueueTaskExpired(task)) {
+        wsLogger.warn(`丢弃过期WebSocket消息: ${task.cmd}`);
+        return;
+      }
 
       try {
         // 直接使用任务指定的 seq（已在入队时分配）
@@ -1051,12 +1121,67 @@ export class XyzwWebSocketClient {
     }, 50);
   }
 
+  _isQueueTaskExpired(task) {
+    const ttl = Number(task.ttl ?? this.queueTaskTtl);
+    return ttl > 0 && Date.now() - Number(task.createdAt || 0) > ttl;
+  }
+
+  _trimSendQueue() {
+    const now = Date.now();
+    const beforeLength = this.sendQueue.length;
+    this.sendQueue = this.sendQueue.filter((task) => {
+      const ttl = Number(task.ttl ?? this.queueTaskTtl);
+      return ttl <= 0 || now - Number(task.createdAt || 0) <= ttl;
+    });
+
+    if (this.sendQueue.length >= this.maxQueueSize) {
+      const dropCount = this.sendQueue.length - this.maxQueueSize + 1;
+      const dropped = this.sendQueue.splice(0, dropCount);
+      wsLogger.warn(
+        `WebSocket发送队列超过上限，已丢弃 ${dropped.length} 条最旧消息`,
+      );
+    }
+
+    const removedExpired = beforeLength - this.sendQueue.length;
+    if (removedExpired > 0) {
+      wsLogger.warn(`WebSocket发送队列已清理 ${removedExpired} 条过期消息`);
+    }
+  }
+
+  _takePromise(requestId) {
+    const key = String(requestId);
+    const promiseData = this.promises[key];
+    if (!promiseData) return null;
+
+    if (promiseData.timer) {
+      clearTimeout(promiseData.timer);
+    }
+    delete this.promises[key];
+    return promiseData;
+  }
+
+  _rejectPendingPromises(error) {
+    const pendingEntries = Object.entries(this.promises);
+    this.promises = Object.create(null);
+
+    for (const [, promiseData] of pendingEntries) {
+      if (promiseData.timer) {
+        clearTimeout(promiseData.timer);
+      }
+      try {
+        promiseData.reject(error);
+      } catch (rejectError) {
+        wsLogger.warn("清理待响应请求失败:", rejectError);
+      }
+    }
+  }
+
   /** 处理 Promise 响应 */
   _handlePromiseResponse(packet) {
     // 优先使用resp字段进行响应匹配（新的正确方式）
     if (packet.resp !== undefined && this.promises[packet.resp]) {
-      const promiseData = this.promises[packet.resp];
-      delete this.promises[packet.resp];
+      const promiseData = this._takePromise(packet.resp);
+      if (!promiseData) return;
 
       // 获取响应数据，优先使用 rawData（ProtoMsg 自动解码），然后 decodedBody（手动解码），最后 body
       const responseBody =
@@ -1258,7 +1383,7 @@ export class XyzwWebSocketClient {
     for (const [requestId, promiseData] of Object.entries(this.promises)) {
       // 检查 Promise 是否匹配当前响应的任一原始命令
       if (originalCmds.includes(promiseData.originalCmd)) {
-        delete this.promises[requestId];
+        this._takePromise(requestId);
 
         // 获取响应数据，优先使用 rawData（ProtoMsg 自动解码），然后 decodedBody（手动解码），最后 body
         const responseBody =

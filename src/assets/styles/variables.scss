@@ -1,12 +1,12 @@
 // 颜色变量
 :root {
   // 主题色
-  --primary-color: #667eea;
-  --primary-color-hover: #5a67d8;
-  --primary-color-light: #e6f7ff;
+  --primary-color: #0f766e;
+  --primary-color-hover: #0d9488;
+  --primary-color-light: #d9f3ee;
 
   // 辅助色
-  --secondary-color: #764ba2;
+  --secondary-color: #17324d;
   --success-color: #18a058;
   --warning-color: #f5a623;
   --error-color: #d03050;
@@ -86,7 +86,7 @@
 
 // 暗色主题
 [data-theme="dark"] {
-  --primary-color-light: #5a67d8;
+  --primary-color-light: rgba(20, 184, 166, 0.18);
   --text-primary: #ffffff;
   --text-secondary: #d1d5db;
   --text-tertiary: #9ca3af;
