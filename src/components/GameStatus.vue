@@ -752,7 +752,6 @@ onUnmounted(() => {
 .game-status-container.full-page-mode {
   max-width: 100% !important;
   grid-template-columns: 1fr;
-  padding: var(--spacing-sm);
 
   @media (min-width: 1400px) {
     max-width: 100% !important;
