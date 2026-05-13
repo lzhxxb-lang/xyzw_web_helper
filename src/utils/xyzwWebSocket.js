@@ -58,6 +58,31 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const DEFAULT_QUEUE_LIMIT = 200;
 const DEFAULT_QUEUE_TTL = 30 * 1000;
+const GACHA_DRAW_REWARD_CMD = "gacha_drawreward";
+const GACHA_DRAW_ALLOWED_WEEKDAYS = new Set([2, 4, 6]);
+const WEEKDAY_LABELS = [
+  "周日",
+  "周一",
+  "周二",
+  "周三",
+  "周四",
+  "周五",
+  "周六",
+];
+
+const isGachaDrawRewardOpen = (date = new Date()) =>
+  GACHA_DRAW_ALLOWED_WEEKDAYS.has(date.getDay());
+
+const createGachaDrawRewardClosedError = (date = new Date()) =>
+  new Error(
+    `扭蛋抽取仅在周二、周四、周六开放，今天是${WEEKDAY_LABELS[date.getDay()]}，已自动关闭`,
+  );
+
+const assertCommandAvailable = (cmd) => {
+  if (cmd === GACHA_DRAW_REWARD_CMD && !isGachaDrawRewardOpen()) {
+    throw createGachaDrawRewardClosedError();
+  }
+};
 
 /** 为日志生成安全的 body 预览，避免控制台再次解析原始对象 */
 const formatBodyForLog = (body) => {
@@ -362,7 +387,7 @@ export function registerDefaultCommands(reg) {
     .register("collection_claimfreereward")
     .register("collection_goodslist")
     // 扭蛋相关
-    .register("gacha_drawreward", { num: 1, isGroup: false })
+    .register(GACHA_DRAW_REWARD_CMD, { num: 1, isGroup: false })
 
     // 车辆相关
     .register("car_getrolecar")
@@ -435,7 +460,7 @@ export function registerDefaultCommands(reg) {
     .register("pet_claimbookreward")
     .register("pet_useexpitem")
     .register("gacha_getinfo")
-    .register("gacha_drawreward")
+    .register(GACHA_DRAW_REWARD_CMD, { num: 1, isGroup: false })
     .register("gacha_claimstagereward")
 
     //发送游戏内消息
@@ -871,6 +896,16 @@ export class XyzwWebSocketClient {
 
   /** 发送消息 */
   send(cmd, params = {}, options = {}) {
+    try {
+      assertCommandAvailable(cmd);
+    } catch (error) {
+      wsLogger.warn(error.message);
+      if (typeof options.onBlocked === "function") {
+        options.onBlocked(error);
+      }
+      return null;
+    }
+
     if (!this.connected) {
       wsLogger.warn(`WebSocket 未连接，消息已入队: ${cmd}`);
       // 防止频繁重连
@@ -913,6 +948,12 @@ export class XyzwWebSocketClient {
   /** Promise 版发送 */
   sendWithPromise(cmd, params = {}, timeoutMs = 5000) {
     return new Promise((resolve, reject) => {
+      try {
+        assertCommandAvailable(cmd);
+      } catch (error) {
+        return reject(error);
+      }
+
       if (!this.connected && !this.socket) {
         return reject(new Error("WebSocket 连接已关闭"));
       }
