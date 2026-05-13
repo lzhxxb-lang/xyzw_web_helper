@@ -400,7 +400,7 @@ export function createTasksCar(deps) {
         });
       } finally {
         tokenStore.closeWebSocketConnection(tokenId);
-        releaseConnectionSlot();
+        releaseConnectionSlot(tokenId);
         addLog({
           time: new Date().toLocaleTimeString(),
           message: `${token.name} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,
@@ -579,7 +579,7 @@ export function createTasksCar(deps) {
         });
       } finally {
         tokenStore.closeWebSocketConnection(tokenId);
-        releaseConnectionSlot();
+        releaseConnectionSlot(tokenId);
         addLog({
           time: new Date().toLocaleTimeString(),
           message: `${token.name} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,

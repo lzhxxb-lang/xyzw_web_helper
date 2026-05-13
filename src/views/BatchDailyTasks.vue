@@ -4862,6 +4862,7 @@ const queryRecipientInfo = async () => {
 
   const firstTokenId = selectedTokens.value[0];
   const token = tokens.value.find((t) => t.id === firstTokenId);
+  let recipientConnectionLease = null;
 
   // 记录开始查询
   addLog({
@@ -4879,7 +4880,7 @@ const queryRecipientInfo = async () => {
     });
 
     // 使用现有的ensureConnection函数，它已经包含了重连机制
-    await ensureConnection(firstTokenId);
+    recipientConnectionLease = await ensureConnection(firstTokenId);
 
     addLog({
       time: new Date().toLocaleTimeString(),
@@ -4999,6 +5000,10 @@ const queryRecipientInfo = async () => {
     message.error(errorMsg);
   } finally {
     isQueryingRecipient.value = false;
+    if (recipientConnectionLease?.acquiredSlot) {
+      tokenStore.closeWebSocketConnection(firstTokenId);
+    }
+    releaseConnectionSlot(firstTokenId);
 
     // 记录查询完成
     addLog({
@@ -5727,16 +5732,29 @@ const waitForConnection = async (
 };
 
 // 全局连接队列控制 - 限制并发连接数
-const connectionQueue = { active: 0 };
+const connectionQueue = { active: 0, leases: new Set() };
 
-const waitForConnectionSlot = async () => {
+const waitForConnectionSlot = async (tokenId) => {
+  if (tokenId && connectionQueue.leases.has(tokenId)) {
+    return false;
+  }
   while (connectionQueue.active >= batchSettings.maxActive) {
     await new Promise((r) => setTimeout(r, 1000));
   }
   connectionQueue.active++;
+  if (tokenId) {
+    connectionQueue.leases.add(tokenId);
+  }
+  return true;
 };
 
-const releaseConnectionSlot = () => {
+const releaseConnectionSlot = (tokenId) => {
+  if (tokenId && !connectionQueue.leases.has(tokenId)) {
+    return;
+  }
+  if (tokenId) {
+    connectionQueue.leases.delete(tokenId);
+  }
   if (connectionQueue.active > 0) {
     connectionQueue.active--;
   }
@@ -5750,10 +5768,11 @@ const ensureConnection = async (tokenId, maxRetries = 2) => {
 
   let status = tokenStore.getWebSocketStatus(tokenId);
   let connected = status === "connected";
+  let acquiredSlot = false;
 
   if (!connected) {
     // 等待连接槽位，限制并发连接数
-    await waitForConnectionSlot();
+    acquiredSlot = await waitForConnectionSlot(tokenId);
 
     addLog({
       time: new Date().toLocaleTimeString(),
@@ -5785,6 +5804,12 @@ const ensureConnection = async (tokenId, maxRetries = 2) => {
       });
 
       const refreshedToken = tokens.value.find((t) => t.id === tokenId);
+      if (!refreshedToken) {
+        if (acquiredSlot) {
+          releaseConnectionSlot(tokenId);
+        }
+        throw new Error(`Token not found after reconnect wait: ${tokenId}`);
+      }
       tokenStore.createWebSocketConnection(
         tokenId,
         refreshedToken.token,
@@ -5796,7 +5821,9 @@ const ensureConnection = async (tokenId, maxRetries = 2) => {
 
     if (!connected) {
       // 连接失败，释放槽位
-      releaseConnectionSlot();
+      if (acquiredSlot) {
+        releaseConnectionSlot(tokenId);
+      }
       throw new Error("连接失败 (重试后仍超时)");
     }
   }
@@ -5821,7 +5848,7 @@ const ensureConnection = async (tokenId, maxRetries = 2) => {
       5000,
     );
     if (res?.battleData?.version) {
-      tokenStore.setBattleVersion(res.battleData.version);
+      tokenStore.setBattleVersion(res.battleData.version, tokenId);
     }
   } catch (e) {
     addLog({
@@ -5831,7 +5858,7 @@ const ensureConnection = async (tokenId, maxRetries = 2) => {
     });
   }
 
-  return true;
+  return { connected: true, acquiredSlot };
 };
 
 const createTaskDeps = () => ({
@@ -5968,18 +5995,28 @@ const startBatch = async () => {
       if (shouldStop.value) break;
 
       const token = tokens.value.find((t) => t.id === tokenId);
+      const tokenName = token?.name || tokenId;
+      if (!token) {
+        tokenStatus.value[tokenId] = "failed";
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `${tokenName} 执行失败: 未找到账号配置`,
+          type: "error",
+        });
+        break;
+      }
 
       try {
         if (retryCount === 0) {
           addLog({
             time: new Date().toLocaleTimeString(),
-            message: `=== 开始执行: ${token.name} ===`,
+            message: `=== 开始执行: ${tokenName} ===`,
             type: "info",
           });
         } else {
           addLog({
             time: new Date().toLocaleTimeString(),
-            message: `=== 尝试重试: ${token.name} (第${retryCount}次) ===`,
+            message: `=== 尝试重试: ${tokenName} (第${retryCount}次) ===`,
             type: "info",
           });
         }
@@ -6004,7 +6041,7 @@ const startBatch = async () => {
         tokenStatus.value[tokenId] = "completed";
         addLog({
           time: new Date().toLocaleTimeString(),
-          message: `=== ${token.name} 执行完成 ===`,
+          message: `=== ${tokenName} 执行完成 ===`,
           type: "success",
         });
       } catch (error) {
@@ -6012,7 +6049,7 @@ const startBatch = async () => {
         if (retryCount < MAX_RETRIES && !shouldStop.value) {
           addLog({
             time: new Date().toLocaleTimeString(),
-            message: `${token.name} 执行出错: ${error.message}，等待3秒后重试...`,
+            message: `${tokenName} 执行出错: ${error.message}，等待3秒后重试...`,
             type: "warning",
           });
           // Wait for potential token refresh in store
@@ -6022,17 +6059,17 @@ const startBatch = async () => {
           tokenStatus.value[tokenId] = "failed";
           addLog({
             time: new Date().toLocaleTimeString(),
-            message: `${token.name} 执行失败: ${error.message}`,
+            message: `${tokenName} 执行失败: ${error.message}`,
             type: "error",
           });
         }
       } finally {
         // 完成后关闭连接并释放槽位
         tokenStore.closeWebSocketConnection(tokenId);
-        releaseConnectionSlot();
+        releaseConnectionSlot(tokenId);
         addLog({
           time: new Date().toLocaleTimeString(),
-          message: `${token.name} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,
+          message: `${tokenName} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,
           type: "info",
         });
       }
